@@ -6,3 +6,17 @@ services:
 
     KonradMichalik\Typo3RoutingMcp\:
         resource: '../Classes/*'
+        exclude:
+            - '../Classes/Attribute/*'
+
+    # $mcpTools is injected at container compile time by McpToolCompilerPass;
+    # $registry autowires normally (it's a concrete, registered service).
+    KonradMichalik\Typo3RoutingMcp\Mcp\ExposurePolicy:
+        arguments:
+            $mcpTools: []
+
+    KonradMichalik\Typo3RoutingMcp\Command\McpToolsCommand:
+        tags:
+            - name: console.command
+              command: 'routing:mcp:tools'
+              description: 'List routes annotated with #[McpTool] and whether they are exposed'
