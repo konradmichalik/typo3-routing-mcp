@@ -50,7 +50,7 @@ final readonly class ToolInvoker
         $response = $this->invoker->invoke($routeName, $arguments, $request);
         $decoded = $this->decodeJsonBody($routeName, $response);
 
-        $content = [new TextContent(json_encode($decoded, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES))];
+        $content = [new TextContent(json_encode($decoded, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR))];
 
         return $response->getStatusCode() >= 400
             ? CallToolResult::error($content)
@@ -59,14 +59,14 @@ final readonly class ToolInvoker
 
     private function decodeJsonBody(string $routeName, ResponseInterface $response): mixed
     {
-        $contentType = $response->getHeaderLine('Content-Type');
-        if (!str_starts_with($contentType, 'application/json') && !str_starts_with($contentType, 'application/problem+json')) {
-            throw new RuntimeException(sprintf('Route "%s" returned a non-JSON response (Content-Type: %s); ToolInvoker requires a JSON body to represent as MCP tool content.', $routeName, '' === $contentType ? '(none)' : $contentType));
-        }
-
         $body = (string) $response->getBody();
         if ('' === $body) {
             return null;
+        }
+
+        $contentType = $response->getHeaderLine('Content-Type');
+        if (!str_starts_with($contentType, 'application/json') && !str_starts_with($contentType, 'application/problem+json')) {
+            throw new RuntimeException(sprintf('Route "%s" returned a non-JSON response (Content-Type: %s); ToolInvoker requires a JSON body to represent as MCP tool content.', $routeName, '' === $contentType ? '(none)' : $contentType));
         }
 
         try {
