@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the "typo3_routing" TYPO3 CMS extension.
+ * This file is part of the "routing_mcp" TYPO3 CMS extension.
  *
  * (c) 2026 Konrad Michalik <hej@konradmichalik.dev>
  *

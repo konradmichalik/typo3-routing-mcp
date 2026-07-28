@@ -15,17 +15,27 @@ namespace KonradMichalik\Typo3RoutingMcp\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 
+use function dirname;
+
+/**
+ * ExtEmConfTest.
+ *
+ * @author Konrad Michalik <hej@konradmichalik.dev>
+ */
 final class ExtEmConfTest extends TestCase
 {
     public function testExtEmConfIsLoadableAndDeclaresTypo3RoutingDependency(): void
     {
-        $rootPath = \dirname(__DIR__, 2);
+        $rootPath = dirname(__DIR__, 2);
 
         $EM_CONF = [];
         $_EXTKEY = 'routing_mcp';
         require $rootPath.'/ext_emconf.php';
 
-        self::assertArrayHasKey($_EXTKEY, $EM_CONF);
-        self::assertArrayHasKey('typo3_routing', $EM_CONF[$_EXTKEY]['constraints']['depends']);
+        /** @var array<string, array{constraints: array{depends: array<string, string>}}> $emConf */
+        $emConf = $EM_CONF;
+
+        self::assertArrayHasKey($_EXTKEY, $emConf);
+        self::assertArrayHasKey('typo3_routing', $emConf[$_EXTKEY]['constraints']['depends']);
     }
 }

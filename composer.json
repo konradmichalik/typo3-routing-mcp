@@ -12,8 +12,6 @@
 			"role": "Maintainer"
 		}
 	],
-	"minimum-stability": "dev",
-	"prefer-stable": true,
 	"require": {
 		"php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
 		"konradmichalik/typo3-routing": "*",
@@ -37,6 +35,8 @@
 			}
 		}
 	],
+	"minimum-stability": "dev",
+	"prefer-stable": true,
 	"autoload": {
 		"psr-4": {
 			"KonradMichalik\\Typo3RoutingMcp\\": "Classes/"
