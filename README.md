@@ -51,7 +51,7 @@ Download the zip file from [TYPO3 extension repository (TER)](https://extensions
 ## 🚀 Quick start
 
 > [!NOTE]
-> This package is under active development — the `#[McpTool]` attribute and the `/_mcp` endpoint are not implemented yet. See [`docs/superpowers/specs/`](docs/superpowers/specs/) for the design.
+> This package is under active development — the `#[McpTool]` attribute and the `/_mcp` endpoint are not implemented yet.
 
 ## 🧑‍💻 Contributing
 

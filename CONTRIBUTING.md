@@ -20,6 +20,9 @@ ddev start
 ddev composer install
 ```
 
+> [!NOTE]
+> `ddev composer install` currently fails with `Source path "../typo3-routing" is not found for package konradmichalik/typo3-routing`. This package depends on an unreleased sibling package (`konradmichalik/typo3-routing`) via a local `path` repository, pending that package's `1.0.0` tag. Unless you have that exact sibling checkout next to this repository, you can ignore this failure for now — there is no feature code yet that needs it installed.
+
 ## Run linters
 
 ```bash
