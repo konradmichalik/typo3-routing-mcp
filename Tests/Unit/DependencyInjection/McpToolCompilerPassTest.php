@@ -84,8 +84,10 @@ final class McpToolCompilerPassTest extends TestCase
             restore_error_handler();
         }
 
-        self::assertStringContainsString('user session', $mcpTools['mcptool_frontend_guarded']['excludedReason']);
-        self::assertStringContainsString(FrontendUserAuthenticator::class, $mcpTools['mcptool_frontend_guarded']['excludedReason']);
+        $reason = $mcpTools['mcptool_frontend_guarded']['excludedReason'];
+        self::assertIsString($reason);
+        self::assertStringContainsString('user session', $reason);
+        self::assertStringContainsString(FrontendUserAuthenticator::class, $reason);
         self::assertNotEmpty($warnings);
         self::assertStringContainsString('mcptool_frontend_guarded', $warnings[0]);
     }
@@ -99,7 +101,9 @@ final class McpToolCompilerPassTest extends TestCase
             BackendUserAuthenticator::class => BackendUserAuthenticator::class,
         ]);
 
-        self::assertStringContainsString(BackendUserAuthenticator::class, $mcpTools['mcptool_backend_guarded']['excludedReason']);
+        $reason = $mcpTools['mcptool_backend_guarded']['excludedReason'];
+        self::assertIsString($reason);
+        self::assertStringContainsString(BackendUserAuthenticator::class, $reason);
     }
 
     #[Test]
@@ -111,7 +115,9 @@ final class McpToolCompilerPassTest extends TestCase
             BackendUserAuthenticator::class => BackendUserAuthenticator::class,
         ]);
 
-        self::assertStringContainsString('request token', $mcpTools['mcptool_request_token_guarded']['excludedReason']);
+        $reason = $mcpTools['mcptool_request_token_guarded']['excludedReason'];
+        self::assertIsString($reason);
+        self::assertStringContainsString('request token', $reason);
     }
 
     #[Test]
@@ -124,6 +130,7 @@ final class McpToolCompilerPassTest extends TestCase
         ]);
 
         $reason = $mcpTools['mcptool_both_guarded']['excludedReason'];
+        self::assertIsString($reason);
         self::assertStringContainsString('user session', $reason);
         self::assertStringContainsString('request token', $reason);
     }
