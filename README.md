@@ -50,8 +50,25 @@ Download the zip file from [TYPO3 extension repository (TER)](https://extensions
 
 ## 🚀 Quick start
 
+Add `#[McpTool]` next to an existing `#[Route]`:
+
+```php
+use KonradMichalik\Typo3Routing\Attribute\Route;
+use KonradMichalik\Typo3RoutingMcp\Attribute\McpTool;
+
+#[Route(path: '/api/courses/{id}', name: 'course_show', description: 'Fetch a single course by its numeric ID.')]
+#[McpTool]
+public function show(int $id): ResponseInterface { /* … */ }
+```
+
+Then audit what's exposed:
+
+```bash
+ddev typo3 routing:mcp:tools
+```
+
 > [!NOTE]
-> This package is under active development — the `#[McpTool]` attribute and the `/_mcp` endpoint are not implemented yet.
+> The `/_mcp` endpoint itself isn't implemented yet — `routing:mcp:tools` is a compile-time audit of what *will* be exposed once it lands. See [`docs/superpowers/specs/`](docs/superpowers/specs/) (local only, not part of this repo's git history) for the full roadmap.
 
 ## 🧑‍💻 Contributing
 

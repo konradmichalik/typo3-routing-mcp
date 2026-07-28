@@ -81,6 +81,9 @@ ddev 14 composer install
 ddev all typo3 database:updateschema
 ```
 
+> [!NOTE]
+> If a fresh instance's custom commands (`ddev <version> typo3 list`) don't show extension commands, run `ddev <version> typo3 extension:setup` to activate them.
+
 ## Submit a pull request
 
 After completing your work, **open a pull request** and provide a description of your changes. Ideally, your PR should reference an issue that explains the problem you are addressing.
