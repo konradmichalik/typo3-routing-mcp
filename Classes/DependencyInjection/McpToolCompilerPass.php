@@ -27,7 +27,7 @@ use function array_map;
 use function class_exists;
 use function explode;
 use function implode;
-use function in_array;
+use function is_a;
 use function is_string;
 use function sprintf;
 use function trigger_error;
@@ -122,7 +122,10 @@ final readonly class McpToolCompilerPass implements CompilerPassInterface
 
         $sessionAuthenticators = array_filter(
             array_map(static fn (array $auth): string => $auth['service'], $authenticators[$routeName] ?? []),
-            static fn (string $class): bool => in_array($class, self::SESSION_SCOPED_AUTHENTICATORS, true),
+            static fn (string $class): bool => [] !== array_filter(
+                self::SESSION_SCOPED_AUTHENTICATORS,
+                static fn (string $base): bool => is_a($class, $base, true),
+            ),
         );
         if ([] !== $sessionAuthenticators) {
             $reasons[] = sprintf('Guarded by an authenticator requiring a user session, which an MCP client cannot provide (%s).', implode(', ', $sessionAuthenticators));
