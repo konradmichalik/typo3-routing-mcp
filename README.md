@@ -68,7 +68,7 @@ ddev typo3 routing:mcp:tools
 ```
 
 > [!NOTE]
-> The `/_mcp` endpoint itself isn't implemented yet — `routing:mcp:tools` is a compile-time audit of what *will* be exposed once it lands. See [`docs/superpowers/specs/`](docs/superpowers/specs/) (local only, not part of this repo's git history) for the full roadmap.
+> The `/_mcp` endpoint itself isn't implemented yet — `routing:mcp:tools` is a compile-time audit of what *will* be exposed once it lands.
 
 ## 🧑‍💻 Contributing
 
