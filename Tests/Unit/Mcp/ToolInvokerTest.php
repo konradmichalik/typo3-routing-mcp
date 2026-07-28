@@ -92,6 +92,17 @@ final class ToolInvokerTest extends TestCase
         self::assertSame('null', $content->text);
     }
 
+    #[Test]
+    public function passesArgumentsThroughToTheRoute(): void
+    {
+        $result = $this->toolInvoker()->invoke('echo', ['id' => 42], $this->request());
+
+        self::assertFalse($result->isError);
+        $content = $result->content[0];
+        self::assertInstanceOf(TextContent::class, $content);
+        self::assertJsonStringEqualsJsonString('{"id":42}', $content->text);
+    }
+
     private function toolInvoker(): ToolInvoker
     {
         return new ToolInvoker($this->routeInvoker());
@@ -118,6 +129,7 @@ final class ToolInvokerTest extends TestCase
             'nonJson' => ['path' => '/api/non-json', 'methods' => ['GET'], 'controller' => 'probe::nonJson', 'env' => null, 'requirements' => []],
             'malformedJson' => ['path' => '/api/malformed', 'methods' => ['GET'], 'controller' => 'probe::malformedJson', 'env' => null, 'requirements' => []],
             'emptyBody' => ['path' => '/api/empty', 'methods' => ['GET'], 'controller' => 'probe::emptyBody', 'env' => null, 'requirements' => []],
+            'echo' => ['path' => '/api/echo/{id}', 'methods' => ['GET'], 'controller' => 'probe::echoId', 'env' => null, 'requirements' => ['id' => '\d+']],
         ];
 
         /** @var array<string, list<array{name: string, type: string|null, source: string, nullable: bool, hasDefault: bool, default: mixed}>> $arguments */
@@ -127,6 +139,7 @@ final class ToolInvokerTest extends TestCase
             'nonJson' => [],
             'malformedJson' => [],
             'emptyBody' => [],
+            'echo' => [['name' => 'id', 'type' => 'int', 'source' => 'path', 'nullable' => false, 'hasDefault' => false, 'default' => null]],
         ];
 
         $locator = new ServiceLocator([

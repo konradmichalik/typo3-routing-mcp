@@ -51,4 +51,9 @@ final class ToolInvokerProbeController implements RouteControllerInterface
     {
         return new Response('php://temp', 200, ['Content-Type' => 'application/json']);
     }
+
+    public function echoId(int $id): JsonResponse
+    {
+        return new JsonResponse(['id' => $id]);
+    }
 }
