@@ -25,7 +25,7 @@ use function strtolower;
  * Compile-time exclusion (session-scoped auth, request token) already happened
  * in McpToolCompilerPass — $mcpTools' excludedReason reflects that. The only
  * check left for runtime is the environment match, mirroring
- * RouteDispatcher::matchesCurrentContext() exactly (case-insensitive match
+ * ControllerInvoker::isVisibleInCurrentContext() exactly (case-insensitive match
  * against the first "/"-separated segment of the current TYPO3 context).
  *
  * @internal
