@@ -88,6 +88,18 @@ final class ExposurePolicyTest extends TestCase
     }
 
     #[Test]
+    #[WithEnvironment(context: 'Development/Docker')]
+    public function exposesARouteMatchingOnlyTheFirstContextSegment(): void
+    {
+        $policy = $this->policy(
+            ['dev_only' => ['path' => '/api/dev', 'methods' => ['GET'], 'controller' => 'ctrl::dev', 'env' => 'Development', 'requirements' => []]],
+            ['dev_only' => ['name' => 'dev_only', 'description' => null, 'readOnly' => false, 'excludedReason' => null]],
+        );
+
+        self::assertTrue($policy->isExposed('dev_only'));
+    }
+
+    #[Test]
     public function allReturnsEveryEntryExposedOrNot(): void
     {
         $mcpTools = [
