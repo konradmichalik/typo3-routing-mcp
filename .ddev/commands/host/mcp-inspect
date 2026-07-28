@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -e
+
+## Description: Inspect this package's /_mcp endpoint for a given TYPO3 instance version via the MCP Inspector CLI.
+## Usage: mcp-inspect [13|14]
+## Example: "ddev mcp-inspect" or "ddev mcp-inspect 14"
+
+version=${1:-13}
+url="https://${version}.typo3-routing-mcp.ddev.site/_mcp"
+
+header_args=()
+if [ -z "${ROUTING_MCP_BEARER_TOKEN:-}" ]; then
+    echo "No ROUTING_MCP_BEARER_TOKEN set in the host environment - connecting without an Authorization header." >&2
+else
+    header_args=(--header "Authorization: Bearer ${ROUTING_MCP_BEARER_TOKEN}")
+fi
+
+npx --yes @modelcontextprotocol/inspector --cli --transport http --server-url "$url" --method tools/list "${header_args[@]}"
