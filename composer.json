@@ -16,6 +16,8 @@
 		"php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
 		"konradmichalik/typo3-routing": "*",
 		"mcp/sdk": "^0.6",
+		"symfony/console": "^7.0 || ^8.0",
+		"symfony/dependency-injection": "^7.1 || ^8.0",
 		"typo3/cms-core": "^13.4 || ^14.0"
 	},
 	"require-dev": {
