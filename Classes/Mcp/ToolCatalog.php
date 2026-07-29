@@ -15,6 +15,8 @@ namespace KonradMichalik\Typo3RoutingMcp\Mcp;
 
 use KonradMichalik\Typo3Routing\Routing\RouteRegistry;
 
+use function array_keys;
+
 /**
  * ToolCatalog.
  *
@@ -40,7 +42,7 @@ final readonly class ToolCatalog
     public function list(): array
     {
         $definitions = [];
-        foreach ($this->exposurePolicy->all() as $routeName => $entry) {
+        foreach (array_keys($this->exposurePolicy->all()) as $routeName) {
             $toolConfig = $this->exposurePolicy->toolConfig($routeName);
             if (null === $toolConfig) {
                 continue;

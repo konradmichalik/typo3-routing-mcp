@@ -49,6 +49,10 @@ final class ToolCatalogTest extends TestCase
         self::assertTrue($definitions[0]->readOnly);
         self::assertSame('GET', $definitions[0]->method);
         self::assertSame(
+            // 'id' is typed 'string' here deliberately: JsonSchemaMapper only ever applies `pattern`
+            // when the resulting schema is `{"type": "string"}` — an 'int'-typed argument never
+            // carries a pattern, so this is the only type that observably proves ToolCatalog threads
+            // the route's `requirements` through to InputSchemaFactory/JsonSchemaMapper correctly.
             ['type' => 'object', 'properties' => ['id' => ['type' => 'string', 'pattern' => '\d+']], 'required' => ['id']],
             $definitions[0]->inputSchema,
         );
