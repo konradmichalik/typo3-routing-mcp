@@ -4,3 +4,6 @@ services:
     autowire: true
     autoconfigure: true
     public: false
+
+  Test\Sitepackage\:
+    resource: '../Classes/*'
