@@ -1,11 +1,20 @@
 #!/usr/bin/env bash
 set -e
 
-## Description: Inspect this package's /_mcp endpoint for a given TYPO3 instance version via the MCP Inspector CLI.
-## Usage: mcp-inspect [13|14]
-## Example: "ddev mcp-inspect" or "ddev mcp-inspect 14"
+## Description: Inspect this package's /_mcp endpoint for a given TYPO3 instance version via the MCP Inspector — opens its interactive web UI by default, or prints a one-shot tools/list JSON with --cli.
+## Usage: mcp-inspect [13|14] [--cli]
+## Example: "ddev mcp-inspect" or "ddev mcp-inspect 14" or "ddev mcp-inspect 13 --cli"
 
-version=${1:-13}
+version=13
+cli_mode=0
+
+for arg in "$@"; do
+    case "$arg" in
+        --cli) cli_mode=1 ;;
+        *) version="$arg" ;;
+    esac
+done
+
 url="https://${version}.typo3-routing-mcp.ddev.site/_mcp"
 
 header_args=()
@@ -15,4 +24,12 @@ else
     header_args=(--header "Authorization: Bearer ${ROUTING_MCP_BEARER_TOKEN}")
 fi
 
-npx --yes @modelcontextprotocol/inspector --cli --transport http --server-url "$url" --method tools/list "${header_args[@]}"
+if [ "$cli_mode" -eq 1 ]; then
+    npx --yes @modelcontextprotocol/inspector --cli --transport http --server-url "$url" --method tools/list "${header_args[@]}"
+else
+    # DANGEROUSLY_OMIT_AUTH: drop the Inspector proxy's own session-token handshake
+    # (local dev-only tool against a dev-only server) so the UI's Connect button is
+    # never blocked on it — matches typo3-ai-mate's own mcp-inspect command.
+    DANGEROUSLY_OMIT_AUTH=true \
+        npx --yes @modelcontextprotocol/inspector --transport http --server-url "$url" "${header_args[@]}"
+fi
