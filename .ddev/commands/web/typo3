@@ -12,7 +12,7 @@ mapfile -t versions < <(get_supported_typo3_versions)
 if [[ "$command" =~ ^[0-9]+$ ]] && [[ " ${versions[@]} " =~ " ${command} " ]]; then
   version=$command
   command=$2
-  TYPO3_PATH=".test/${version}/vendor/bin/typo3"
+  TYPO3_PATH=".Build/${version}/vendor/bin/typo3"
   if [ -f "$TYPO3_PATH" ]; then
       message magenta "[TYPO3 v${version}] ${command}"
       /usr/bin/php $TYPO3_PATH $command
@@ -21,7 +21,7 @@ if [[ "$command" =~ ^[0-9]+$ ]] && [[ " ${versions[@]} " =~ " ${command} " ]]; t
   fi
 else
     for version in "${versions[@]}"; do
-        TYPO3_PATH=".test/${version}/vendor/bin/typo3"
+        TYPO3_PATH=".Build/${version}/vendor/bin/typo3"
         if [ -f "$TYPO3_PATH" ]; then
             message magenta "[TYPO3 v${version}] ${command}"
             /usr/bin/php $TYPO3_PATH $command
