@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f780232a772a3ff9ee49fa065b0c03ce",
+    "content-hash": "01658a13767c3690fd4a2e504467d39e",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1208,7 +1208,7 @@
             "dist": {
                 "type": "path",
                 "url": "../typo3-routing",
-                "reference": "e3f7a5014d281d7f11c2358e2e75cb591a47ad88"
+                "reference": "c96cbeb8871cad79b0e064c2fdfac0f108c69fdf"
             },
             "require": {
                 "ext-mbstring": "*",
