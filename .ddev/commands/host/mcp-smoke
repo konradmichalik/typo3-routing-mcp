@@ -16,16 +16,18 @@ fi
 
 header_args=(--header "Authorization: Bearer ${ROUTING_MCP_BEARER_TOKEN}")
 
+npx_inspector() {
+    npx --yes @modelcontextprotocol/inspector@latest --cli --transport http --server-url "$url" "$@" 2>/dev/null
+}
+
 call_tool() {
     local name="$1"
     shift
-    npx --yes @modelcontextprotocol/inspector@latest --cli --transport http --server-url "$url" \
-        --method tools/call --tool-name "${name}" "$@" "${header_args[@]}" 2>/dev/null
+    npx_inspector --method tools/call --tool-name "${name}" "$@" "${header_args[@]}"
 }
 
 list_tools() {
-    npx --yes @modelcontextprotocol/inspector@latest --cli --transport http --server-url "$url" \
-        --method tools/list "${header_args[@]}" 2>/dev/null
+    npx_inspector --method tools/list "${header_args[@]}"
 }
 
 printf "Smoke-testing typo3-routing-mcp's /_mcp endpoint on TYPO3 v%s\n\n" "${version}"
@@ -72,8 +74,7 @@ check "tools/call invokes greet and returns the expected greeting" "expected a s
 # some response came back — an unauthenticated request must never see the tool
 # list (the endpoint is "entirely inactive", not merely unauthenticated).
 check_auth_guard() {
-    ! npx --yes @modelcontextprotocol/inspector@latest --cli --transport http --server-url "$url" \
-        --method tools/list 2>/dev/null | grep -q '"name":[[:space:]]*"greet"'
+    ! npx_inspector --method tools/list | grep -q '"name":[[:space:]]*"greet"'
 }
 check "unauthenticated request never sees the tool list" "expected a bare 404 without a bearer token" check_auth_guard
 
