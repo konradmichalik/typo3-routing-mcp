@@ -8,10 +8,16 @@ set -eo pipefail
 # initial setup tasks before the main installation process begins.
 pre_setup 14
 
-#_progress " ├─ Install additional composer packages"
-#  composer req x/y:'^1.0' \
-#          --no-progress -n -d $BASE_PATH
-#_done
+_progress " ├─ Track typo3-routing's main branch"
+  # konradmichalik/typo3-routing hasn't tagged the 1.0.0 release this extension
+  # needs yet (see this repo's CLAUDE.md); pin to its live main branch via
+  # Packagist instead of whatever tagged release composer would otherwise pick,
+  # so RouteInvoker/JsonSchemaMapper are actually present.
+  composer config minimum-stability dev --no-interaction -d $BASE_PATH
+  composer config prefer-stable true --no-interaction -d $BASE_PATH
+  composer require konradmichalik/typo3-routing:dev-main \
+          --no-progress -n -d $BASE_PATH
+_done
 
 # Function to perform post-setup tasks.
 # This function is called after the main installation process to finalize the setup.
