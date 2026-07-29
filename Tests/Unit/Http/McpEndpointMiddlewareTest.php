@@ -106,7 +106,16 @@ final class McpEndpointMiddlewareTest extends TestCase
         );
 
         self::assertSame(200, $response->getStatusCode());
-        self::assertStringContainsString('"success"', (string) $response->getBody());
+        $body = (string) $response->getBody();
+        self::assertStringContainsString('"success"', $body);
+
+        // The zero-argument "success" tool's inputSchema.properties must serialize as
+        // a JSON object ("{}"), not an array ("[]") — Builder::addTool() does not
+        // normalize this itself, unlike Tool::fromArray(), so McpEndpointMiddleware
+        // must cast it to (object) before registration. json_decode(..., true) would
+        // collapse both shapes to an identical PHP [] and hide a regression, so this
+        // has to assert on the raw, un-decoded response string instead.
+        self::assertStringContainsString('"properties":{}', $body);
     }
 
     #[Test]

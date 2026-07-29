@@ -67,8 +67,20 @@ Then audit what's exposed:
 ddev typo3 routing:mcp:tools
 ```
 
+Set a bearer token and point an MCP client at the endpoint:
+
+```bash
+export ROUTING_MCP_BEARER_TOKEN=<a-long-random-secret>
+```
+
+```bash
+claude mcp add --transport http my-project \
+  https://your-project.example.org/_mcp \
+  --header "Authorization: Bearer <a-long-random-secret>"
+```
+
 > [!NOTE]
-> The `/_mcp` endpoint itself isn't implemented yet — `routing:mcp:tools` is a compile-time audit of what *will* be exposed once it lands.
+> Without `ROUTING_MCP_BEARER_TOKEN` (or the env var name configured via the extension's `bearerTokenEnvName` setting) set, the endpoint is entirely inactive — not merely unauthenticated.
 
 ## 🧑‍💻 Contributing
 
