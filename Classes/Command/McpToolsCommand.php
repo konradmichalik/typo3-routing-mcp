@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace KonradMichalik\Typo3RoutingMcp\Command;
 
-use KonradMichalik\Typo3RoutingMcp\Mcp\ExposurePolicy;
+use KonradMichalik\Typo3RoutingMcp\Mcp\{ExposurePolicy, ToolCatalog};
 use Override;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -22,6 +22,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 use function array_map;
+use function count;
 use function json_encode;
 
 use const JSON_PRETTY_PRINT;
@@ -40,6 +41,7 @@ final class McpToolsCommand extends Command
 {
     public function __construct(
         private readonly ExposurePolicy $exposurePolicy,
+        private readonly ToolCatalog $toolCatalog,
     ) {
         parent::__construct();
     }
@@ -70,12 +72,13 @@ final class McpToolsCommand extends Command
 
         $io->title('MCP Tools');
         $io->table(
-            ['Route', 'Tool name', 'Description', 'Read-only', 'Status'],
+            ['Route', 'Tool name', 'Description', 'Read-only', 'Arguments', 'Status'],
             array_map(static fn (array $row): array => [
                 $row['route'],
                 $row['name'],
                 $row['description'] ?? '-',
                 $row['readOnly'] ? 'yes' : 'no',
+                $row['arguments'] ?? '-',
                 $row['status'],
             ], $rows),
         );
@@ -84,10 +87,15 @@ final class McpToolsCommand extends Command
     }
 
     /**
-     * @return list<array{route: string, name: string, description: string|null, readOnly: bool, status: string}>
+     * @return list<array{route: string, name: string, description: string|null, readOnly: bool, arguments: int|null, status: string}>
      */
     private function collectRows(): array
     {
+        $argumentCounts = [];
+        foreach ($this->toolCatalog->list() as $definition) {
+            $argumentCounts[$definition->routeName] = count($definition->inputSchema['properties']);
+        }
+
         $rows = [];
         foreach ($this->exposurePolicy->all() as $routeName => $entry) {
             $rows[] = [
@@ -95,6 +103,7 @@ final class McpToolsCommand extends Command
                 'name' => $entry['name'],
                 'description' => $entry['description'],
                 'readOnly' => $entry['readOnly'],
+                'arguments' => $argumentCounts[$routeName] ?? null,
                 'status' => $this->exposurePolicy->isExposed($routeName)
                     ? 'Exposed'
                     : 'Excluded: '.($entry['excludedReason'] ?? 'environment mismatch'),

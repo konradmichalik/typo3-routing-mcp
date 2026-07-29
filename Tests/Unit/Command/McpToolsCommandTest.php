@@ -14,9 +14,10 @@ declare(strict_types=1);
 namespace KonradMichalik\Typo3RoutingMcp\Tests\Unit\Command;
 
 use KonradMichalik\Ttt\Attribute\WithEnvironment;
+use KonradMichalik\Typo3Routing\OpenApi\JsonSchemaMapper;
 use KonradMichalik\Typo3Routing\Routing\RouteRegistry;
 use KonradMichalik\Typo3RoutingMcp\Command\McpToolsCommand;
-use KonradMichalik\Typo3RoutingMcp\Mcp\ExposurePolicy;
+use KonradMichalik\Typo3RoutingMcp\Mcp\{ExposurePolicy, InputSchemaFactory, ToolCatalog};
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -39,6 +40,7 @@ final class McpToolsCommandTest extends TestCase
         $display = $tester->getDisplay();
 
         self::assertSame(0, $exitCode);
+        self::assertStringContainsString('Arguments', $display);
         self::assertStringContainsString('course_show', $display);
         self::assertStringContainsString('Exposed', $display);
         self::assertStringContainsString('secure_route', $display);
@@ -55,11 +57,13 @@ final class McpToolsCommandTest extends TestCase
 
         $tester->execute(['--json' => true]);
 
-        /** @var list<array{route: string, name: string, description: string|null, readOnly: bool, status: string}> $data */
+        /** @var list<array{route: string, name: string, description: string|null, readOnly: bool, arguments: int|null, status: string}> $data */
         $data = json_decode(trim($tester->getDisplay()), true, 512, \JSON_THROW_ON_ERROR);
 
         self::assertSame('course_show', $data[0]['route']);
         self::assertSame('Exposed', $data[0]['status']);
+        self::assertSame(1, $data[0]['arguments']);
+        self::assertNull($data[1]['arguments']);
     }
 
     #[Test]
@@ -67,7 +71,8 @@ final class McpToolsCommandTest extends TestCase
     {
         $registry = new RouteRegistry([], new ServiceLocator([]));
         $exposurePolicy = new ExposurePolicy($registry, []);
-        $tester = new CommandTester(new McpToolsCommand($exposurePolicy));
+        $toolCatalog = new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory(new JsonSchemaMapper()));
+        $tester = new CommandTester(new McpToolsCommand($exposurePolicy, $toolCatalog));
 
         $exitCode = $tester->execute([]);
 
@@ -78,9 +83,15 @@ final class McpToolsCommandTest extends TestCase
     private function tester(): CommandTester
     {
         $routes = [
-            'course_show' => ['path' => '/api/courses/{id}', 'methods' => ['GET'], 'controller' => 'ctrl::show', 'env' => null, 'requirements' => []],
+            'course_show' => ['path' => '/api/courses/{id}', 'methods' => ['GET'], 'controller' => 'ctrl::show', 'env' => null, 'requirements' => ['id' => '\d+']],
             'secure_route' => ['path' => '/api/secure', 'methods' => ['GET'], 'controller' => 'ctrl::secure', 'env' => null, 'requirements' => []],
             'dev_only_route' => ['path' => '/api/dev', 'methods' => ['GET'], 'controller' => 'ctrl::dev', 'env' => 'Development', 'requirements' => []],
+        ];
+
+        $arguments = [
+            'course_show' => [['name' => 'id', 'type' => 'int', 'source' => 'path', 'nullable' => false, 'hasDefault' => false, 'default' => null]],
+            'secure_route' => [],
+            'dev_only_route' => [],
         ];
 
         $mcpTools = [
@@ -89,9 +100,10 @@ final class McpToolsCommandTest extends TestCase
             'dev_only_route' => ['name' => 'dev_only_route', 'description' => null, 'readOnly' => false, 'excludedReason' => null],
         ];
 
-        $registry = new RouteRegistry($routes, new ServiceLocator([]));
+        $registry = new RouteRegistry($routes, new ServiceLocator([]), arguments: $arguments);
         $exposurePolicy = new ExposurePolicy($registry, $mcpTools);
+        $toolCatalog = new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory(new JsonSchemaMapper()));
 
-        return new CommandTester(new McpToolsCommand($exposurePolicy));
+        return new CommandTester(new McpToolsCommand($exposurePolicy, $toolCatalog));
     }
 }
