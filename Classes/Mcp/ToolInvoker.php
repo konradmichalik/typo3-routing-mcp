@@ -66,7 +66,7 @@ final readonly class ToolInvoker
 
         $contentType = $response->getHeaderLine('Content-Type');
         if (!str_starts_with($contentType, 'application/json') && !str_starts_with($contentType, 'application/problem+json')) {
-            throw new RuntimeException(sprintf('Route "%s" returned a non-JSON response (Content-Type: %s); ToolInvoker requires a JSON body to represent as MCP tool content.', $routeName, '' === $contentType ? '(none)' : $contentType));
+            throw new RuntimeException(sprintf('Route "%s" returned a non-JSON response (Content-Type: %s); ToolInvoker requires a JSON body to represent as MCP tool content.', $routeName, '' === $contentType ? '(none)' : $contentType), 1800099552);
         }
 
         try {
