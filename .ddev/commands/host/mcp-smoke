@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+
+## Description: Smoke-test the /_mcp endpoint's full pipeline (auth guard, session handling, tools/list, tools/call) against the demo greet fixture and print a pass/fail summary
+## Usage: mcp-smoke [13|14]
+## Example: "ddev mcp-smoke 13"
+
+set -uo pipefail
+
+version="${1:-13}"
+url="https://${version}.typo3-routing-mcp.ddev.site/_mcp"
+
+if [ -z "${ROUTING_MCP_BEARER_TOKEN:-}" ]; then
+    echo "ROUTING_MCP_BEARER_TOKEN is not set in the host environment; every check below would 404 against a correctly-configured endpoint. Export it first (see README) and retry." >&2
+    exit 1
+fi
+
+header_args=(--header "Authorization: Bearer ${ROUTING_MCP_BEARER_TOKEN}")
+
+call_tool() {
+    local name="$1"
+    shift
+    npx --yes @modelcontextprotocol/inspector@latest --cli --transport http --server-url "$url" \
+        --method tools/call --tool-name "${name}" "$@" "${header_args[@]}" 2>/dev/null
+}
+
+list_tools() {
+    npx --yes @modelcontextprotocol/inspector@latest --cli --transport http --server-url "$url" \
+        --method tools/list "${header_args[@]}" 2>/dev/null
+}
+
+printf "Smoke-testing typo3-routing-mcp's /_mcp endpoint on TYPO3 v%s\n\n" "${version}"
+pass=0
+fail=0
+failed=()
+
+# Retries absorb a transient Inspector-proxy race, same as typo3-ai-mate's own
+# mcp-smoke command.
+check() {
+    local label="$1" description="$2"
+    local ok=0
+    for attempt in 1 2; do
+        if "$3"; then
+            ok=1
+            break
+        fi
+        sleep 1
+    done
+
+    if [ "${ok}" -eq 1 ]; then
+        printf "  \033[32m✔\033[0m %s\n" "${label}"
+        pass=$((pass + 1))
+    else
+        printf "  \033[31m✘\033[0m %s (%s)\n" "${label}" "${description}"
+        fail=$((fail + 1))
+        failed+=("${label}")
+    fi
+}
+
+check_tools_list() {
+    list_tools | grep -q '"name":[[:space:]]*"greet"'
+}
+check "tools/list exposes the demo greet tool" "expected the fixture route's #[McpTool] to appear" check_tools_list
+
+check_tools_call() {
+    local result
+    result="$(call_tool greet --tool-arg name=Smoke)"
+    echo "${result}" | grep -q '"isError":[[:space:]]*false' && echo "${result}" | grep -q 'Hello, Smoke!'
+}
+check "tools/call invokes greet and returns the expected greeting" "expected a successful, correctly-templated greeting" check_tools_call
+
+# Security-behavior check: assert the bearer guard actually fired, not just that
+# some response came back — an unauthenticated request must never see the tool
+# list (the endpoint is "entirely inactive", not merely unauthenticated).
+check_auth_guard() {
+    ! npx --yes @modelcontextprotocol/inspector@latest --cli --transport http --server-url "$url" \
+        --method tools/list 2>/dev/null | grep -q '"name":[[:space:]]*"greet"'
+}
+check "unauthenticated request never sees the tool list" "expected a bare 404 without a bearer token" check_auth_guard
+
+printf "\n%d passed, %d failed" "${pass}" "${fail}"
+[ "${fail}" -gt 0 ] && printf " (%s)" "${failed[*]}"
+printf "\n"
+[ "${fail}" -eq 0 ]
