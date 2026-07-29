@@ -21,6 +21,12 @@ return [
             // Host header has already been validated against a configured site
             // (see design doc §1c — this is why DnsRebindingProtectionMiddleware is
             // safely omitted from the transport's own middleware list below).
+            // Unlike the core's own RouteDispatcher, this middleware does not also
+            // need to run after backend-user-authentication / authentication:
+            // ExposurePolicy/McpToolCompilerPass already exclude any route requiring
+            // session-scoped authenticators at compile time, and RouteInvoker's
+            // invocation path never touches the SecurityAspect state those auth
+            // middlewares populate.
             'after' => [
                 'typo3/cms-frontend/site',
             ],
