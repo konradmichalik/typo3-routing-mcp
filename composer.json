@@ -14,7 +14,7 @@
 	],
 	"require": {
 		"php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
-		"konradmichalik/typo3-routing": "*",
+		"konradmichalik/typo3-routing": "dev-main",
 		"mcp/sdk": "^0.6",
 		"psr/http-message": "^1.0 || ^2.0",
 		"psr/http-server-handler": "^1.0",
@@ -32,15 +32,6 @@
 		"typo3/cms-lowlevel": "^13.4 || ^14.0",
 		"typo3/testing-framework": "^8.2 || ^9.0 || ^10.0"
 	},
-	"repositories": [
-		{
-			"type": "path",
-			"url": "../typo3-routing",
-			"options": {
-				"symlink": true
-			}
-		}
-	],
 	"minimum-stability": "dev",
 	"prefer-stable": true,
 	"autoload": {

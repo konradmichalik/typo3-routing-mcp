@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "01658a13767c3690fd4a2e504467d39e",
+    "content-hash": "1f950eff218471c614a482df3579c624",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1205,10 +1205,16 @@
         {
             "name": "konradmichalik/typo3-routing",
             "version": "dev-main",
-            "dist": {
-                "type": "path",
-                "url": "../typo3-routing",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/konradmichalik/typo3-routing.git",
                 "reference": "c96cbeb8871cad79b0e064c2fdfac0f108c69fdf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/konradmichalik/typo3-routing/zipball/c96cbeb8871cad79b0e064c2fdfac0f108c69fdf",
+                "reference": "c96cbeb8871cad79b0e064c2fdfac0f108c69fdf",
+                "shasum": ""
             },
             "require": {
                 "ext-mbstring": "*",
@@ -1234,15 +1240,16 @@
                 "typo3/cms-lowlevel": "^13.4 || ^14.0",
                 "typo3/testing-framework": "^8.2 || ^9.0 || ^10.0"
             },
+            "default-branch": true,
             "type": "typo3-cms-extension",
             "extra": {
+                "typo3/cms": {
+                    "web-dir": "public",
+                    "extension-key": "typo3_routing",
+                    "cms-package-dir": "{$vendor-dir}/typo3/cms"
+                },
                 "konradmichalik/php-cs-fixer-preset": {
                     "copyright": 2026
-                },
-                "typo3/cms": {
-                    "cms-package-dir": "{$vendor-dir}/typo3/cms",
-                    "extension-key": "typo3_routing",
-                    "web-dir": "public"
                 }
             },
             "autoload": {
@@ -1250,32 +1257,7 @@
                     "KonradMichalik\\Typo3Routing\\": "Classes/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "KonradMichalik\\RoutingTest\\": "Tests/Functional/Fixtures/Extensions/routing_test/Classes/",
-                    "KonradMichalik\\Typo3Routing\\Tests\\": "Tests/"
-                }
-            },
-            "scripts": {
-                "post-install-cmd": [
-                    "@cgl install"
-                ],
-                "cgl": [
-                    "@composer -d Tests/CGL --"
-                ],
-                "test": [
-                    "@test:unit"
-                ],
-                "test:coverage": [
-                    "phpunit -c phpunit.xml"
-                ],
-                "test:functional": [
-                    "phpunit -c phpunit.functional.xml"
-                ],
-                "test:unit": [
-                    "phpunit -c phpunit.xml --no-coverage"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "GPL-2.0-or-later"
             ],
@@ -1287,10 +1269,11 @@
                 }
             ],
             "description": "Attribute Routing - Register frontend endpoints via PHP attributes on controller methods, as an attribute-based alternative to the missing frontend counterpart of AjaxRoutes.php.",
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
+            "support": {
+                "issues": "https://github.com/konradmichalik/typo3-routing/issues",
+                "source": "https://github.com/konradmichalik/typo3-routing/tree/main"
+            },
+            "time": "2026-07-29T06:30:55+00:00"
         },
         {
             "name": "lolli42/finediff",
@@ -10491,7 +10474,9 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {},
+    "stability-flags": {
+        "konradmichalik/typo3-routing": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
