@@ -5,7 +5,7 @@
 # TYPO3 extension `routing_mcp`
 
 [![Latest Stable Version](https://typo3-badges.dev/badge/routing_mcp/version/shields.svg)](https://extensions.typo3.org/extension/routing_mcp)
-![TYPO3](https://img.shields.io/badge/TYPO3-13.4%20%7C%2014.0-orange.svg)
+![TYPO3](https://img.shields.io/badge/TYPO3-13.4%20%7C%2014.3-orange.svg)
 [![Supported PHP Versions](https://img.shields.io/packagist/dependency-v/konradmichalik/typo3-routing-mcp/php?logo=php)](https://packagist.org/packages/konradmichalik/typo3-routing-mcp)
 [![CGL](https://img.shields.io/github/actions/workflow/status/konradmichalik/typo3-routing-mcp/cgl.yml?label=cgl&logo=github)](https://github.com/konradmichalik/typo3-routing-mcp/actions/workflows/cgl.yml)
 [![Tests](https://img.shields.io/github/actions/workflow/status/konradmichalik/typo3-routing-mcp/tests.yml?label=tests&logo=github)](https://github.com/konradmichalik/typo3-routing-mcp/actions/workflows/tests.yml)
@@ -13,16 +13,16 @@
 
 </div>
 
-This extension exposes [`typo3-routing`](https://github.com/konradmichalik/typo3-routing) frontend routes as [MCP](https://modelcontextprotocol.io/) tools over a Streamable HTTP endpoint — so an AI agent can invoke your project's own domain endpoints (course search, store locator, whatever lives in your sitepackage), not just generic TYPO3 content operations.
+This extension exposes [`typo3-routing`](https://github.com/konradmichalik/typo3-routing) frontend routes as [MCP](https://modelcontextprotocol.io/) tools over a Streamable HTTP endpoint, so an AI agent can invoke your project's own domain endpoints (course search, store locator, whatever lives in your sitepackage), not just generic TYPO3 content operations.
 
 > [!NOTE]
-> Nothing is exposed by default. A route becomes callable only when its controller method also carries `#[McpTool]` — opt-in, never opt-out.
+> Generic TYPO3 MCP servers can only talk about content: pages, records, files. Your project's own domain endpoints, course search, store locator, whatever your sitepackage needs, are invisible to them. This extension closes that gap: it turns routes you've already declared via `typo3-routing` into MCP tools an agent can call directly.
 
 ## ✨ Features
 
-- **One attribute, one tool** — add `#[McpTool]` next to an existing `#[Route]`, flush caches, done
-- **Streamable HTTP** — a single endpoint (`/_mcp` by default, configurable), bearer-token gated, usable on staging and production
-- **Security by construction** — session-scoped authenticators (`FrontendUserAuthenticator`/`BackendUserAuthenticator`) and request-token-protected routes are never exposed, no matter the attribute
+- **One attribute, one tool**: add `#[McpTool]` next to an existing `#[Route]`, flush caches, done
+- **Streamable HTTP**: a single endpoint (`/_mcp` by default, configurable), bearer-token gated, usable on staging and production
+- **Security by construction**: session-scoped authenticators (`FrontendUserAuthenticator`/`BackendUserAuthenticator`) and request-token-protected routes are never exposed, no matter the attribute
 
 ## 🔥 Installation
 
@@ -61,13 +61,13 @@ use KonradMichalik\Typo3RoutingMcp\Attribute\McpTool;
 public function show(int $id): ResponseInterface { /* … */ }
 ```
 
-Then audit what's exposed:
+Then audit what's exposed, via the TYPO3 console:
 
 ```bash
-ddev typo3 routing:mcp:tools
+vendor/bin/typo3 routing:mcp:tools
 ```
 
-Set a bearer token and point an MCP client at the endpoint:
+Set a bearer token and point an MCP client at the endpoint. Any client that speaks Streamable HTTP works the same way, just configure the URL and the `Authorization` header:
 
 ```bash
 export ROUTING_MCP_BEARER_TOKEN=<a-long-random-secret>
@@ -79,10 +79,26 @@ claude mcp add --transport http my-project \
   --header "Authorization: Bearer <a-long-random-secret>"
 ```
 
-> [!NOTE]
-> Without `ROUTING_MCP_BEARER_TOKEN` (or the env var name configured via the extension's `bearerTokenEnvName` setting) set, the endpoint is entirely inactive — not merely unauthenticated.
+Or, for clients configured via an `mcp.json`-style file (Cursor, VS Code Copilot, and others):
 
-The `initialize` response also carries an `instructions` field describing how to use the exposed tools (read-only vs. mutating, RFC 9457 error content) — most MCP clients surface this to the connecting agent automatically.
+```json
+{
+  "servers": {
+    "my-project": {
+      "type": "http",
+      "url": "https://your-project.example.org/_mcp",
+      "headers": {
+        "Authorization": "Bearer <a-long-random-secret>"
+      }
+    }
+  }
+}
+```
+
+> [!NOTE]
+> Without `ROUTING_MCP_BEARER_TOKEN` (or the env var name configured via the extension's `bearerTokenEnvName` setting) set, the endpoint is entirely inactive, not merely unauthenticated.
+
+The `initialize` response also carries an `instructions` field describing how to use the exposed tools (read-only vs. mutating, RFC 9457 error content). Most MCP clients surface this to the connecting agent automatically.
 
 ### Configuration
 
