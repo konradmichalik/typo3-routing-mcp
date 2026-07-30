@@ -156,6 +156,16 @@ final class McpEndpointMiddlewareTest extends TestCase
         self::assertSame(200, $response->getStatusCode());
     }
 
+    #[Test]
+    #[WithEnvVar(self::ENV_NAME, self::TOKEN)]
+    public function initializeResultCarriesUsageInstructionsForAgents(): void
+    {
+        $response = $this->initialize($this->middleware());
+
+        self::assertStringContainsString('"instructions"', (string) $response->getBody());
+        self::assertStringContainsString('RFC 9457', (string) $response->getBody());
+    }
+
     private function initialize(McpEndpointMiddleware $middleware): ResponseInterface
     {
         return $middleware->process(

@@ -82,6 +82,8 @@ claude mcp add --transport http my-project \
 > [!NOTE]
 > Without `ROUTING_MCP_BEARER_TOKEN` (or the env var name configured via the extension's `bearerTokenEnvName` setting) set, the endpoint is entirely inactive — not merely unauthenticated.
 
+The `initialize` response also carries an `instructions` field describing how to use the exposed tools (read-only vs. mutating, RFC 9457 error content) — most MCP clients surface this to the connecting agent automatically.
+
 ## 🧑‍💻 Contributing
 
 Please have a look at [`CONTRIBUTING.md`](CONTRIBUTING.md).

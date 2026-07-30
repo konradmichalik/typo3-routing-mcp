@@ -47,6 +47,17 @@ final readonly class McpEndpointMiddleware implements MiddlewareInterface
 {
     private const PATH = '/_mcp';
 
+    private const INSTRUCTIONS = <<<'TXT'
+        This server exposes project-specific domain routes as MCP tools — each tool
+        invokes one #[McpTool]-annotated route. Read a tool's description and
+        inputSchema before calling it: arguments are validated against the same
+        requirements the underlying HTTP route enforces. Tools annotated read-only
+        are safe to call without side effects; others may mutate application state.
+        On error, the tool result carries the full RFC 9457 problem document
+        (type/title/status/detail/instance) as its content, not just a message —
+        inspect `status` to distinguish, for example, a 404 from a 422.
+        TXT;
+
     public function __construct(
         private McpAuthGuard $authGuard,
         private ToolCatalog $toolCatalog,
@@ -76,6 +87,7 @@ final readonly class McpEndpointMiddleware implements MiddlewareInterface
     {
         $builder = Server::builder()
             ->setServerInfo('TYPO3 Routing MCP', '1.0.0')
+            ->setInstructions(self::INSTRUCTIONS)
             ->setSession(sessionStore: new FileSessionStore(
                 Environment::getVarPath().'/routing_mcp/mcp-sessions',
             ));
