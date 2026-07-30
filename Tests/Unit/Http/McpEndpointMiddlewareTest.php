@@ -198,7 +198,7 @@ final class McpEndpointMiddlewareTest extends TestCase
         $extensionConfiguration->method('get')->willReturnCallback(
             static fn (string $extension, string $path): string => match ($path) {
                 'bearerTokenEnvName' => self::ENV_NAME,
-                'endpointPath' => throw new RuntimeException('not configured'),
+                'endpointPath' => throw new RuntimeException('not configured', 2160304167),
                 default => '',
             },
         );
