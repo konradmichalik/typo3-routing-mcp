@@ -14,7 +14,7 @@
 	],
 	"require": {
 		"php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
-		"konradmichalik/typo3-routing": "dev-main",
+		"konradmichalik/typo3-routing": "^0.5",
 		"mcp/sdk": "^0.6",
 		"psr/http-message": "^1.0 || ^2.0",
 		"psr/http-server-handler": "^1.0",
@@ -33,8 +33,6 @@
 		"typo3/cms-lowlevel": "^13.4 || ^14.0",
 		"typo3/testing-framework": "^8.2 || ^9.0 || ^10.0"
 	},
-	"minimum-stability": "dev",
-	"prefer-stable": true,
 	"autoload": {
 		"psr-4": {
 			"KonradMichalik\\Typo3RoutingMcp\\": "Classes/"
