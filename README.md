@@ -13,7 +13,7 @@
 
 </div>
 
-This extension exposes [`typo3-routing`](https://github.com/konradmichalik/typo3-routing) frontend routes as [MCP](https://modelcontextprotocol.io/) tools over a Streamable HTTP endpoint, so an AI agent can invoke your project's own domain endpoints (course search, store locator, whatever lives in your sitepackage), not just generic TYPO3 content operations.
+This extension exposes [`typo3-routing`](https://github.com/konradmichalik/typo3-routing) frontend routes as [MCP](https://modelcontextprotocol.io/) tools over a Streamable HTTP endpoint. Add the `#[McpTool]` PHP attribute to a routed controller method, and an AI agent can invoke your project's own domain endpoints directly, not just generic TYPO3 content operations.
 
 > [!NOTE]
 > Generic TYPO3 MCP servers can only talk about content: pages, records, files. Your project's own domain endpoints, course search, store locator, whatever your sitepackage needs, are invisible to them. This extension closes that gap: it turns routes you've already declared via `typo3-routing` into MCP tools an agent can call directly.
@@ -30,7 +30,7 @@ This extension exposes [`typo3-routing`](https://github.com/konradmichalik/typo3
 
 * TYPO3 >= 13.4
 * PHP 8.2+
-* [`konradmichalik/typo3-routing`](https://github.com/konradmichalik/typo3-routing) installed and configured
+* <img src="https://github.com/konradmichalik/typo3-routing/blob/main/Resources/Public/Icons/Extension.png?raw=true" width="16" height="16" alt=""> [`konradmichalik/typo3-routing`](https://github.com/konradmichalik/typo3-routing) installed and configured
 
 ### Composer
 
