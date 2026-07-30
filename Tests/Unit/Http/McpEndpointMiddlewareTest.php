@@ -26,6 +26,7 @@ use PHPUnit\Framework\Attributes\{CoversClass, Test};
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 use Psr\Http\Server\RequestHandlerInterface;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Context\Context;
@@ -189,6 +190,25 @@ final class McpEndpointMiddlewareTest extends TestCase
         self::assertTrue($response->hasHeader('Mcp-Session-Id'));
     }
 
+    #[Test]
+    #[WithEnvVar(self::ENV_NAME, self::TOKEN)]
+    public function fallsBackToTheDefaultPathWhenExtensionConfigurationThrowsForEndpointPath(): void
+    {
+        $extensionConfiguration = $this->createMock(ExtensionConfiguration::class);
+        $extensionConfiguration->method('get')->willReturnCallback(
+            static fn (string $extension, string $path): string => match ($path) {
+                'bearerTokenEnvName' => self::ENV_NAME,
+                'endpointPath' => throw new RuntimeException('not configured'),
+                default => '',
+            },
+        );
+
+        $response = $this->initialize($this->middleware(extensionConfiguration: $extensionConfiguration));
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertTrue($response->hasHeader('Mcp-Session-Id'));
+    }
+
     private function initialize(McpEndpointMiddleware $middleware, string $path = '/_mcp'): ResponseInterface
     {
         return $middleware->process(
@@ -256,13 +276,9 @@ final class McpEndpointMiddlewareTest extends TestCase
         };
     }
 
-    private function middleware(string $endpointPath = ''): McpEndpointMiddleware
+    private function middleware(string $endpointPath = '', ?ExtensionConfiguration $extensionConfiguration = null): McpEndpointMiddleware
     {
-        $extensionConfiguration = $this->createMock(ExtensionConfiguration::class);
-        $extensionConfiguration->method('get')->willReturnMap([
-            ['routing_mcp', 'bearerTokenEnvName', self::ENV_NAME],
-            ['routing_mcp', 'endpointPath', $endpointPath],
-        ]);
+        $extensionConfiguration ??= $this->defaultExtensionConfiguration($endpointPath);
 
         $registry = $this->registry();
         $exposurePolicy = new ExposurePolicy($registry, [
@@ -279,6 +295,17 @@ final class McpEndpointMiddlewareTest extends TestCase
         $authGuard = new McpAuthGuard(new BearerTokenAuthenticator($extensionConfiguration), $extensionConfiguration);
 
         return new McpEndpointMiddleware($authGuard, $catalog, $invoker, $extensionConfiguration);
+    }
+
+    private function defaultExtensionConfiguration(string $endpointPath): ExtensionConfiguration
+    {
+        $extensionConfiguration = $this->createMock(ExtensionConfiguration::class);
+        $extensionConfiguration->method('get')->willReturnMap([
+            ['routing_mcp', 'bearerTokenEnvName', self::ENV_NAME],
+            ['routing_mcp', 'endpointPath', $endpointPath],
+        ]);
+
+        return $extensionConfiguration;
     }
 
     private function registry(): RouteRegistry

@@ -135,6 +135,51 @@ final class McpToolCompilerPassTest extends TestCase
         self::assertStringContainsString('request token', $reason);
     }
 
+    #[Test]
+    public function leavesExposurePolicyUntouchedWhenRouteRegistryIsMissing(): void
+    {
+        $container = new ContainerBuilder();
+        $exposurePolicy = new Definition(ExposurePolicy::class);
+        $exposurePolicy->setArgument('$mcpTools', ['sentinel' => 'unchanged']);
+        $container->setDefinition(ExposurePolicy::class, $exposurePolicy);
+
+        (new McpToolCompilerPass())->process($container);
+
+        self::assertSame(['sentinel' => 'unchanged'], $container->getDefinition(ExposurePolicy::class)->getArgument('$mcpTools'));
+    }
+
+    #[Test]
+    public function ignoresARouteWhoseControllerServiceIsNotRegistered(): void
+    {
+        $mcpTools = $this->discoverRawRoute([
+            'path' => '/api/ghost', 'methods' => ['GET'], 'controller' => 'ghost_service::method', 'env' => null, 'requirements' => [],
+        ]);
+
+        self::assertSame([], $mcpTools);
+    }
+
+    #[Test]
+    public function ignoresARouteWhoseControllerServiceHasNoResolvableClass(): void
+    {
+        $mcpTools = $this->discoverRawRoute(
+            ['path' => '/api/classless', 'methods' => ['GET'], 'controller' => 'classless_service::method', 'env' => null, 'requirements' => []],
+            extraServices: ['classless_service' => null],
+        );
+
+        self::assertSame([], $mcpTools);
+    }
+
+    #[Test]
+    public function ignoresARouteWhoseControllerClassDoesNotExist(): void
+    {
+        $mcpTools = $this->discoverRawRoute(
+            ['path' => '/api/missing-class', 'methods' => ['GET'], 'controller' => 'missing_class_service::method', 'env' => null, 'requirements' => []],
+            extraServices: ['missing_class_service' => 'Totally\\Nonexistent\\ClassName'],
+        );
+
+        self::assertSame([], $mcpTools);
+    }
+
     /**
      * @param array<string, class-string> $services
      *
@@ -159,6 +204,42 @@ final class McpToolCompilerPassTest extends TestCase
         }
 
         (new RouteCompilerPass())->process($container);
+        (new McpToolCompilerPass())->process($container);
+
+        /** @var array<string, array{name: string, description: string|null, readOnly: bool, excludedReason: string|null}> $mcpTools */
+        $mcpTools = $container->getDefinition(ExposurePolicy::class)->getArgument('$mcpTools');
+
+        return $mcpTools;
+    }
+
+    /**
+     * Sets the RouteRegistry's $routes argument directly, bypassing RouteCompilerPass,
+     * so a single deliberately malformed route can exercise resolveMcpTool()'s
+     * container-defensive guards without needing a real #[Route]-attributed fixture.
+     *
+     * @param array{path: string, methods: list<string>, controller: string, env: string|null, requirements: array<string, string>} $route
+     * @param array<string, string|null>                                                                                            $extraServices service id => class, deliberately not class-string since one test passes a non-existent class name
+     *
+     * @return array<string, array{name: string, description: string|null, readOnly: bool, excludedReason: string|null}>
+     */
+    private function discoverRawRoute(array $route, array $extraServices = []): array
+    {
+        $container = new ContainerBuilder();
+
+        $registry = new Definition(RouteRegistry::class);
+        $registry->setArgument('$routes', ['probe' => $route]);
+        $registry->setArgument('$authenticators', []);
+        $registry->setArgument('$requestTokenScopes', []);
+        $container->setDefinition(RouteRegistry::class, $registry);
+
+        $exposurePolicy = new Definition(ExposurePolicy::class);
+        $exposurePolicy->setArgument('$mcpTools', []);
+        $container->setDefinition(ExposurePolicy::class, $exposurePolicy);
+
+        foreach ($extraServices as $id => $class) {
+            $container->setDefinition($id, new Definition($class));
+        }
+
         (new McpToolCompilerPass())->process($container);
 
         /** @var array<string, array{name: string, description: string|null, readOnly: bool, excludedReason: string|null}> $mcpTools */
