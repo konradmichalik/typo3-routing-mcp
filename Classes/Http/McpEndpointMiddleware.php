@@ -24,15 +24,20 @@ use Mcp\Server\Transport\Http\Middleware\{CorsMiddleware, ProtocolVersionMiddlew
 use Mcp\Server\Transport\StreamableHttpTransport;
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 use Psr\Http\Server\{MiddlewareInterface, RequestHandlerInterface};
+use Throwable;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Http\Response;
+
+use function is_string;
 
 /**
  * McpEndpointMiddleware.
  *
- * PSR-15 adapter around mcp/sdk's Streamable HTTP transport: intercepts the fixed
- * /_mcp path, authenticates via McpAuthGuard, then builds a fresh mcp/sdk Server
- * per request from ToolCatalog::list() and runs it through StreamableHttpTransport.
+ * PSR-15 adapter around mcp/sdk's Streamable HTTP transport: intercepts the
+ * configured endpoint path (defaults to /_mcp), authenticates via McpAuthGuard,
+ * then builds a fresh mcp/sdk Server per request from ToolCatalog::list() and
+ * runs it through StreamableHttpTransport.
  *
  * Built fresh every request — not cached — because each registered tool's closure
  * captures the CURRENT request; only the FileSessionStore's directory must stay
@@ -45,7 +50,7 @@ use TYPO3\CMS\Core\Http\Response;
  */
 final readonly class McpEndpointMiddleware implements MiddlewareInterface
 {
-    private const PATH = '/_mcp';
+    private const DEFAULT_PATH = '/_mcp';
 
     private const INSTRUCTIONS = <<<'TXT'
         This server exposes project-specific domain routes as MCP tools — each tool
@@ -62,11 +67,12 @@ final readonly class McpEndpointMiddleware implements MiddlewareInterface
         private McpAuthGuard $authGuard,
         private ToolCatalog $toolCatalog,
         private ToolInvoker $toolInvoker,
+        private ExtensionConfiguration $extensionConfiguration,
     ) {}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        if (self::PATH !== $request->getUri()->getPath()) {
+        if ($this->path() !== $request->getUri()->getPath()) {
             return $handler->handle($request);
         }
 
@@ -81,6 +87,24 @@ final readonly class McpEndpointMiddleware implements MiddlewareInterface
         );
 
         return $server->run($transport)->withHeader('Cache-Control', 'no-store');
+    }
+
+    /**
+     * Resolves this extension's own "endpointPath" setting, not typo3_routing's.
+     * Mirrors McpAuthGuard::envName()'s fallback behaviour.
+     */
+    private function path(): string
+    {
+        try {
+            $configured = $this->extensionConfiguration->get('routing_mcp', 'endpointPath');
+            if (is_string($configured) && '' !== $configured) {
+                return $configured;
+            }
+        } catch (Throwable) {
+            // Extension not configured yet — fall back to the default path.
+        }
+
+        return self::DEFAULT_PATH;
     }
 
     private function buildServer(ServerRequestInterface $request): Server

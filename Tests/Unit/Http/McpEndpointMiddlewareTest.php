@@ -166,7 +166,30 @@ final class McpEndpointMiddlewareTest extends TestCase
         self::assertStringContainsString('RFC 9457', (string) $response->getBody());
     }
 
-    private function initialize(McpEndpointMiddleware $middleware): ResponseInterface
+    #[Test]
+    public function delegatesToTheNextHandlerForTheDefaultPathWhenACustomPathIsConfigured(): void
+    {
+        $downstreamResponse = new Response('php://temp', 204);
+
+        $result = $this->middleware(endpointPath: '/agents/mcp')->process(
+            Requests::get('https://example.com/_mcp')->build(),
+            $this->handler($downstreamResponse),
+        );
+
+        self::assertSame($downstreamResponse, $result);
+    }
+
+    #[Test]
+    #[WithEnvVar(self::ENV_NAME, self::TOKEN)]
+    public function respondsOnTheConfiguredCustomPathInstead(): void
+    {
+        $response = $this->initialize($this->middleware(endpointPath: '/agents/mcp'), path: '/agents/mcp');
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertTrue($response->hasHeader('Mcp-Session-Id'));
+    }
+
+    private function initialize(McpEndpointMiddleware $middleware, string $path = '/_mcp'): ResponseInterface
     {
         return $middleware->process(
             $this->mcpRequest([
@@ -178,7 +201,7 @@ final class McpEndpointMiddlewareTest extends TestCase
                     'capabilities' => [],
                     'clientInfo' => ['name' => 'test-client', 'version' => '1.0.0'],
                 ],
-            ]),
+            ], path: $path),
             $this->handler(new Response()),
         );
     }
@@ -191,11 +214,11 @@ final class McpEndpointMiddlewareTest extends TestCase
     /**
      * @param array<string, mixed> $jsonRpcBody
      */
-    private function mcpRequest(array $jsonRpcBody, ?string $sessionId = null): ServerRequest
+    private function mcpRequest(array $jsonRpcBody, ?string $sessionId = null, string $path = '/_mcp'): ServerRequest
     {
         $site = $this->site();
 
-        $builder = Requests::post('https://example.com/_mcp')
+        $builder = Requests::post('https://example.com'.$path)
             ->withHeader('Authorization', 'Bearer '.self::TOKEN)
             ->withJsonBody($jsonRpcBody)
             // A tools/call route runs the full RouteInvoker chain, which — like
@@ -233,10 +256,13 @@ final class McpEndpointMiddlewareTest extends TestCase
         };
     }
 
-    private function middleware(): McpEndpointMiddleware
+    private function middleware(string $endpointPath = ''): McpEndpointMiddleware
     {
         $extensionConfiguration = $this->createMock(ExtensionConfiguration::class);
-        $extensionConfiguration->method('get')->willReturn(self::ENV_NAME);
+        $extensionConfiguration->method('get')->willReturnMap([
+            ['routing_mcp', 'bearerTokenEnvName', self::ENV_NAME],
+            ['routing_mcp', 'endpointPath', $endpointPath],
+        ]);
 
         $registry = $this->registry();
         $exposurePolicy = new ExposurePolicy($registry, [
@@ -252,7 +278,7 @@ final class McpEndpointMiddlewareTest extends TestCase
         ));
         $authGuard = new McpAuthGuard(new BearerTokenAuthenticator($extensionConfiguration), $extensionConfiguration);
 
-        return new McpEndpointMiddleware($authGuard, $catalog, $invoker);
+        return new McpEndpointMiddleware($authGuard, $catalog, $invoker, $extensionConfiguration);
     }
 
     private function registry(): RouteRegistry

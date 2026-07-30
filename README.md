@@ -21,7 +21,7 @@ This extension exposes [`typo3-routing`](https://github.com/konradmichalik/typo3
 ## ✨ Features
 
 - **One attribute, one tool** — add `#[McpTool]` next to an existing `#[Route]`, flush caches, done
-- **Streamable HTTP** — a single fixed endpoint (`/_mcp`), bearer-token gated, usable on staging and production
+- **Streamable HTTP** — a single endpoint (`/_mcp` by default, configurable), bearer-token gated, usable on staging and production
 - **Security by construction** — session-scoped authenticators (`FrontendUserAuthenticator`/`BackendUserAuthenticator`) and request-token-protected routes are never exposed, no matter the attribute
 
 ## 🔥 Installation
@@ -83,6 +83,15 @@ claude mcp add --transport http my-project \
 > Without `ROUTING_MCP_BEARER_TOKEN` (or the env var name configured via the extension's `bearerTokenEnvName` setting) set, the endpoint is entirely inactive — not merely unauthenticated.
 
 The `initialize` response also carries an `instructions` field describing how to use the exposed tools (read-only vs. mutating, RFC 9457 error content) — most MCP clients surface this to the connecting agent automatically.
+
+### Configuration
+
+Set these via the extension's TYPO3 Extension Configuration (Admin Tools > Settings > Extension Configuration > `routing_mcp`):
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `bearerTokenEnvName` | `ROUTING_MCP_BEARER_TOKEN` | Name of the process environment variable holding the expected bearer token. |
+| `endpointPath` | `/_mcp` | Request path the middleware listens on. Change this if `/_mcp` collides with something else in your project. |
 
 ## 🧑‍💻 Contributing
 
