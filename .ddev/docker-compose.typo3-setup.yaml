@@ -2,7 +2,7 @@
 services:
     web:
         environment:
-            - EXTENSION_KEY=routing_mcp
+            - EXTENSION_KEY=typo3_routing_mcp
             - EXTENSION_NAME=typo3-routing-mcp
             - PACKAGE_NAME=konradmichalik/typo3-routing-mcp
             - TYPO3_VERSIONS=13 14

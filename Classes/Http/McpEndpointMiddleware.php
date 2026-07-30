@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the "routing_mcp" TYPO3 CMS extension.
+ * This file is part of the "typo3_routing_mcp" TYPO3 CMS extension.
  *
  * (c) 2026 Konrad Michalik <hej@konradmichalik.dev>
  *
@@ -96,7 +96,7 @@ final readonly class McpEndpointMiddleware implements MiddlewareInterface
     private function path(): string
     {
         try {
-            $configured = $this->extensionConfiguration->get('routing_mcp', 'endpointPath');
+            $configured = $this->extensionConfiguration->get('typo3_routing_mcp', 'endpointPath');
             if (is_string($configured) && '' !== $configured) {
                 return $configured;
             }
@@ -113,7 +113,7 @@ final readonly class McpEndpointMiddleware implements MiddlewareInterface
             ->setServerInfo('TYPO3 Routing MCP', '1.0.0')
             ->setInstructions(self::INSTRUCTIONS)
             ->setSession(sessionStore: new FileSessionStore(
-                Environment::getVarPath().'/routing_mcp/mcp-sessions',
+                Environment::getVarPath().'/typo3_routing_mcp/mcp-sessions',
             ));
 
         foreach ($this->toolCatalog->list() as $tool) {

@@ -2,9 +2,9 @@
 
 ![Extension icon](Resources/Public/Icons/Extension.png)
 
-# TYPO3 extension `routing_mcp`
+# TYPO3 extension `typo3_routing_mcp`
 
-[![Latest Stable Version](https://typo3-badges.dev/badge/routing_mcp/version/shields.svg)](https://extensions.typo3.org/extension/routing_mcp)
+[![Latest Stable Version](https://typo3-badges.dev/badge/typo3_routing_mcp/version/shields.svg)](https://extensions.typo3.org/extension/typo3_routing_mcp)
 ![TYPO3](https://img.shields.io/badge/TYPO3-13.4%20%7C%2014.3-orange.svg)
 [![Supported PHP Versions](https://img.shields.io/packagist/dependency-v/konradmichalik/typo3-routing-mcp/php?logo=php)](https://packagist.org/packages/konradmichalik/typo3-routing-mcp)
 [![CGL](https://img.shields.io/github/actions/workflow/status/konradmichalik/typo3-routing-mcp/cgl.yml?label=cgl&logo=github)](https://github.com/konradmichalik/typo3-routing-mcp/actions/workflows/cgl.yml)
@@ -43,10 +43,10 @@ composer require konradmichalik/typo3-routing-mcp
 
 ### TER
 
-[![TER version](https://typo3-badges.dev/badge/routing_mcp/version/shields.svg)](https://extensions.typo3.org/extension/routing_mcp)
-[![TER downloads](https://typo3-badges.dev/badge/routing_mcp/downloads/shields.svg)](https://extensions.typo3.org/extension/routing_mcp)
+[![TER version](https://typo3-badges.dev/badge/typo3_routing_mcp/version/shields.svg)](https://extensions.typo3.org/extension/typo3_routing_mcp)
+[![TER downloads](https://typo3-badges.dev/badge/typo3_routing_mcp/downloads/shields.svg)](https://extensions.typo3.org/extension/typo3_routing_mcp)
 
-Download the zip file from [TYPO3 extension repository (TER)](https://extensions.typo3.org/extension/routing_mcp).
+Download the zip file from [TYPO3 extension repository (TER)](https://extensions.typo3.org/extension/typo3_routing_mcp).
 
 ## 🚀 Quick start
 
@@ -102,7 +102,7 @@ The `initialize` response also carries an `instructions` field describing how to
 
 ### Configuration
 
-Set these via the extension's TYPO3 Extension Configuration (Admin Tools > Settings > Extension Configuration > `routing_mcp`):
+Set these via the extension's TYPO3 Extension Configuration (Admin Tools > Settings > Extension Configuration > `typo3_routing_mcp`):
 
 | Setting | Default | Description |
 | --- | --- | --- |

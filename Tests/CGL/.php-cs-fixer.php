@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the "routing_mcp" TYPO3 CMS extension.
+ * This file is part of the "typo3_routing_mcp" TYPO3 CMS extension.
  *
  * (c) 2026 Konrad Michalik <hej@konradmichalik.dev>
  *
@@ -27,7 +27,7 @@ return Config::create()
     ])
     ->withRule(
         Header::create(
-            'routing_mcp',
+            'typo3_routing_mcp',
             Type::TYPO3Extension,
             Author::create('Konrad Michalik', 'hej@konradmichalik.dev'),
             CopyrightRange::from(2026),

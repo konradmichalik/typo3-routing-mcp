@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the "routing_mcp" TYPO3 CMS extension.
+ * This file is part of the "typo3_routing_mcp" TYPO3 CMS extension.
  *
  * (c) 2026 Konrad Michalik <hej@konradmichalik.dev>
  *
@@ -301,8 +301,8 @@ final class McpEndpointMiddlewareTest extends TestCase
     {
         $extensionConfiguration = $this->createMock(ExtensionConfiguration::class);
         $extensionConfiguration->method('get')->willReturnMap([
-            ['routing_mcp', 'bearerTokenEnvName', self::ENV_NAME],
-            ['routing_mcp', 'endpointPath', $endpointPath],
+            ['typo3_routing_mcp', 'bearerTokenEnvName', self::ENV_NAME],
+            ['typo3_routing_mcp', 'endpointPath', $endpointPath],
         ]);
 
         return $extensionConfiguration;

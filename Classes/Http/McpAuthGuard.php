@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the "routing_mcp" TYPO3 CMS extension.
+ * This file is part of the "typo3_routing_mcp" TYPO3 CMS extension.
  *
  * (c) 2026 Konrad Michalik <hej@konradmichalik.dev>
  *
@@ -50,7 +50,7 @@ final readonly class McpAuthGuard
     private function envName(): string
     {
         try {
-            $configured = $this->extensionConfiguration->get('routing_mcp', 'bearerTokenEnvName');
+            $configured = $this->extensionConfiguration->get('typo3_routing_mcp', 'bearerTokenEnvName');
             if (is_string($configured) && '' !== $configured) {
                 return $configured;
             }

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the "routing_mcp" TYPO3 CMS extension.
+ * This file is part of the "typo3_routing_mcp" TYPO3 CMS extension.
  *
  * (c) 2026 Konrad Michalik <hej@konradmichalik.dev>
  *
@@ -29,7 +29,7 @@ final class ExtEmConfTest extends TestCase
         $rootPath = dirname(__DIR__, 2);
 
         $EM_CONF = [];
-        $_EXTKEY = 'routing_mcp';
+        $_EXTKEY = 'typo3_routing_mcp';
         require $rootPath.'/ext_emconf.php';
 
         /** @var array<string, array{constraints: array{depends: array<string, string>}}> $emConf */

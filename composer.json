@@ -64,7 +64,7 @@
 		},
 		"typo3/cms": {
 			"cms-package-dir": "{$vendor-dir}/typo3/cms",
-			"extension-key": "routing_mcp",
+			"extension-key": "typo3_routing_mcp",
 			"web-dir": "public"
 		}
 	},
