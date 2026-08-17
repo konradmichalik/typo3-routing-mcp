@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b28f45472abc320aeb4b0aadf7204ccd",
+    "content-hash": "f6ffb6a0ad867f891f0dcc6a8e661cd0",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1204,16 +1204,16 @@
         },
         {
             "name": "konradmichalik/typo3-routing",
-            "version": "0.5.0",
+            "version": "1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/konradmichalik/typo3-routing.git",
-                "reference": "143733585784ca2122315c32ee8a3ccd33d907ee"
+                "reference": "1b10d602a9ffc05f68520fc8deed9a81dd487732"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/konradmichalik/typo3-routing/zipball/143733585784ca2122315c32ee8a3ccd33d907ee",
-                "reference": "143733585784ca2122315c32ee8a3ccd33d907ee",
+                "url": "https://api.github.com/repos/konradmichalik/typo3-routing/zipball/1b10d602a9ffc05f68520fc8deed9a81dd487732",
+                "reference": "1b10d602a9ffc05f68520fc8deed9a81dd487732",
                 "shasum": ""
             },
             "require": {
@@ -1233,8 +1233,8 @@
                 "typo3fluid/fluid": "^4.2 || ^5.0"
             },
             "require-dev": {
-                "eliashaeussler/version-bumper": "^4.0.3",
-                "konradmichalik/ttt": "^0.2.0",
+                "eliashaeussler/version-bumper": "^4.0.4",
+                "konradmichalik/ttt": "^0.4.0",
                 "phpunit/phpunit": "^11.0 || ^12.0 || ^13.0",
                 "typo3/cms-base-distribution": "^13.4 || ^14.0",
                 "typo3/cms-lowlevel": "^13.4 || ^14.0",
@@ -1270,9 +1270,9 @@
             "description": "Attribute Routing - Register frontend endpoints via PHP attributes on controller methods, as an attribute-based alternative to the missing frontend counterpart of AjaxRoutes.php.",
             "support": {
                 "issues": "https://github.com/konradmichalik/typo3-routing/issues",
-                "source": "https://github.com/konradmichalik/typo3-routing/tree/0.5.0"
+                "source": "https://github.com/konradmichalik/typo3-routing/tree/1.0.0"
             },
-            "time": "2026-07-30T08:16:01+00:00"
+            "time": "2026-08-14T07:32:23+00:00"
         },
         {
             "name": "lolli42/finediff",
