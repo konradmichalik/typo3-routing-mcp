@@ -18,7 +18,7 @@ use KonradMichalik\Ttt\Http\Requests;
 use KonradMichalik\Typo3Routing\Authentication\{AccessGuard, BearerTokenAuthenticator};
 use KonradMichalik\Typo3Routing\Http\{RouteUrlGenerator, SiteBasePathResolver};
 use KonradMichalik\Typo3Routing\OpenApi\JsonSchemaMapper;
-use KonradMichalik\Typo3Routing\Routing\{ControllerArgumentResolver, ControllerInvoker, RouteInvoker, RouteRegistry};
+use KonradMichalik\Typo3Routing\Routing\{ControllerArgumentResolver, ControllerInvoker, RouteInvoker, RouteRegistry, SiteLanguageScope};
 use KonradMichalik\Typo3RoutingMcp\Http\{McpAuthGuard, McpEndpointMiddleware};
 use KonradMichalik\Typo3RoutingMcp\Mcp\{ExposurePolicy, InputSchemaFactory, ToolCatalog, ToolInvoker};
 use KonradMichalik\Typo3RoutingMcp\Tests\Unit\Fixtures\ToolInvokerProbeController;
@@ -31,7 +31,9 @@ use Symfony\Component\DependencyInjection\ServiceLocator;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Http\{Response, ServerRequest};
+use TYPO3\CMS\Core\Log\LogManager;
 use TYPO3\CMS\Core\Site\Entity\Site;
+use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface;
 
 /**
@@ -291,6 +293,7 @@ final class McpEndpointMiddlewareTest extends TestCase
             new ControllerInvoker($registry, new ControllerArgumentResolver($this->createMock(PersistenceManagerInterface::class))),
             new AccessGuard($registry, new Context()),
             new RouteUrlGenerator($registry, new SiteBasePathResolver()),
+            new SiteLanguageScope($this->createMock(SiteFinder::class), $this->createMock(LogManager::class)),
         ));
         $authGuard = new McpAuthGuard(new BearerTokenAuthenticator($extensionConfiguration), $extensionConfiguration);
 
