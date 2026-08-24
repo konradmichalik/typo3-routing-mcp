@@ -20,3 +20,9 @@ parameters:
 
 	type_coverage:
 		constant: 0 # TODO: Set to 100, when PHP 8.3 is minimum requirement
+
+	ignoreErrors:
+		# Named arguments and constructor defaults are used deliberately throughout this
+		# codebase for readability on multi-parameter calls/attribute APIs.
+		- identifier: ergebnis.noNamedArgument
+		- identifier: ergebnis.noConstructorParameterWithDefaultValue
