@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7836faddcacb0c25de8c1b77beb9c3d5",
+    "content-hash": "5a01c9ac85c484e565a4fc35c5e8a1d3",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1204,16 +1204,16 @@
         },
         {
             "name": "konradmichalik/typo3-routing",
-            "version": "1.3.0",
+            "version": "1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/konradmichalik/typo3-routing.git",
-                "reference": "13d8894889e5857e325be533eb7daba97b1b4ba0"
+                "reference": "18eb998bf20e360a7166ca19723875afab352b0b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/konradmichalik/typo3-routing/zipball/13d8894889e5857e325be533eb7daba97b1b4ba0",
-                "reference": "13d8894889e5857e325be533eb7daba97b1b4ba0",
+                "url": "https://api.github.com/repos/konradmichalik/typo3-routing/zipball/18eb998bf20e360a7166ca19723875afab352b0b",
+                "reference": "18eb998bf20e360a7166ca19723875afab352b0b",
                 "shasum": ""
             },
             "require": {
@@ -1270,9 +1270,9 @@
             "description": "Attribute Routing - Register frontend endpoints via PHP attributes on controller methods, as an attribute-based alternative to the missing frontend counterpart of AjaxRoutes.php.",
             "support": {
                 "issues": "https://github.com/konradmichalik/typo3-routing/issues",
-                "source": "https://github.com/konradmichalik/typo3-routing/tree/1.3.0"
+                "source": "https://github.com/konradmichalik/typo3-routing/tree/1.4.0"
             },
-            "time": "2026-09-02T14:20:19+00:00"
+            "time": "2026-09-09T11:05:31+00:00"
         },
         {
             "name": "lolli42/finediff",
