@@ -49,13 +49,7 @@ final readonly class InputSchemaFactory
                 continue;
             }
 
-            $pattern = $requirements[$argument['name']] ?? null;
-            $pattern = '' === $pattern ? null : $pattern;
-            $schema = $this->schemas->schemaForType($argument['type'], $pattern);
-
-            $properties[$argument['name']] = 'variadic' === $argument['source']
-                ? ['type' => 'array', 'items' => $schema]
-                : $schema;
+            $properties[$argument['name']] = $this->propertyFor($argument, $requirements);
 
             if (!$argument['hasDefault'] && !$argument['nullable']) {
                 $required[] = $argument['name'];
@@ -68,5 +62,21 @@ final readonly class InputSchemaFactory
         }
 
         return $result;
+    }
+
+    /**
+     * @param array{name: string, type: string|null, source: string, nullable: bool, hasDefault: bool, default: mixed} $argument
+     * @param array<string, string>                                                                                    $requirements
+     *
+     * @return array<string, mixed>
+     */
+    private function propertyFor(array $argument, array $requirements): array
+    {
+        $pattern = $requirements[$argument['name']] ?? null;
+        $schema = $this->schemas->schemaForType($argument['type'], '' === $pattern ? null : $pattern);
+
+        return 'variadic' === $argument['source']
+            ? ['type' => 'array', 'items' => $schema]
+            : $schema;
     }
 }
