@@ -21,7 +21,7 @@ TYPO3 extension `typo3_routing_mcp` (`konradmichalik/typo3-routing-mcp`), a sate
 - `Configuration/`: services, middleware, TYPO3 configuration
 - `Tests/Unit/`, `Tests/Functional/`: PHPUnit tests
 - `Tests/Acceptance/Fixtures/`: fixtures, including a sitepackage with sample controllers
-- `Tests/CGL/`: isolated Composer project with the code style and analysis tooling
+- `Tests/CGL/`: isolated Composer project with the code style and analysis tooling. Its `composer.lock` is committed and updated by Renovate, so tool releases only reach CI through a Renovate PR
 
 ## Development commands
 
