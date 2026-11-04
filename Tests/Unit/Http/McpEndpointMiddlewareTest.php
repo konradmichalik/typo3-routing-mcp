@@ -123,6 +123,16 @@ final class McpEndpointMiddlewareTest extends TestCase
 
     #[Test]
     #[WithEnvVar(self::ENV_NAME, self::TOKEN)]
+    public function listsToolAnnotationsWithMethodDerivedHints(): void
+    {
+        $tools = $this->listTools();
+
+        self::assertSame(['readOnlyHint' => true], $tools['success']['annotations']);
+        self::assertSame(['readOnlyHint' => false, 'destructiveHint' => true, 'idempotentHint' => true], $tools['remove']['annotations']);
+    }
+
+    #[Test]
+    #[WithEnvVar(self::ENV_NAME, self::TOKEN)]
     public function callsAToolReusingTheSessionIdAndReturnsTheRawArgumentsPassedThrough(): void
     {
         $sessionId = $this->sessionIdFrom($this->initialize($this->middleware()));
@@ -228,6 +238,28 @@ final class McpEndpointMiddlewareTest extends TestCase
         );
     }
 
+    /**
+     * @return array<string, array<string, mixed>> tools/list entries keyed by tool name
+     */
+    private function listTools(): array
+    {
+        $sessionId = $this->sessionIdFrom($this->initialize($this->middleware()));
+        $response = $this->middleware()->process(
+            $this->mcpRequest(['jsonrpc' => '2.0', 'id' => 2, 'method' => 'tools/list'], $sessionId),
+            $this->handler(new Response()),
+        );
+
+        /** @var array{result: array{tools: list<array{name: string}&array<string, mixed>>}} $envelope */
+        $envelope = json_decode((string) $response->getBody(), true, 512, \JSON_THROW_ON_ERROR);
+
+        $tools = [];
+        foreach ($envelope['result']['tools'] as $tool) {
+            $tools[$tool['name']] = $tool;
+        }
+
+        return $tools;
+    }
+
     private function sessionIdFrom(ResponseInterface $response): string
     {
         return $response->getHeaderLine('Mcp-Session-Id');
@@ -284,8 +316,9 @@ final class McpEndpointMiddlewareTest extends TestCase
 
         $registry = $this->registry();
         $exposurePolicy = new ExposurePolicy($registry, [
-            'success' => ['name' => 'success', 'description' => 'Returns a count.', 'readOnly' => true, 'excludedReason' => null],
-            'echo' => ['name' => 'echo', 'description' => 'Echoes the given id.', 'readOnly' => true, 'excludedReason' => null],
+            'success' => ['name' => 'success', 'description' => 'Returns a count.', 'readOnly' => true, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
+            'echo' => ['name' => 'echo', 'description' => 'Echoes the given id.', 'readOnly' => true, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
+            'remove' => ['name' => 'remove', 'description' => 'Deletes something.', 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
         ]);
         $catalog = new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory(new JsonSchemaMapper()));
         $invoker = new ToolInvoker(new RouteInvoker(
@@ -317,12 +350,14 @@ final class McpEndpointMiddlewareTest extends TestCase
         $routes = [
             'success' => ['path' => '/api/success', 'methods' => ['GET'], 'controller' => 'probe::success', 'env' => null, 'requirements' => []],
             'echo' => ['path' => '/api/echo/{id}', 'methods' => ['GET'], 'controller' => 'probe::echoId', 'env' => null, 'requirements' => ['id' => '\d+']],
+            'remove' => ['path' => '/api/remove', 'methods' => ['DELETE'], 'controller' => 'probe::emptyBody', 'env' => null, 'requirements' => []],
         ];
 
         /** @var array<string, list<array{name: string, type: string|null, source: string, nullable: bool, hasDefault: bool, default: mixed}>> $arguments */
         $arguments = [
             'success' => [],
             'echo' => [['name' => 'id', 'type' => 'int', 'source' => 'path', 'nullable' => false, 'hasDefault' => false, 'default' => null]],
+            'remove' => [],
         ];
 
         $locator = new ServiceLocator([

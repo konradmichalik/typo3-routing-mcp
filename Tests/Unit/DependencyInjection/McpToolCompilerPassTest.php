@@ -27,6 +27,8 @@ use Symfony\Component\DependencyInjection\{ContainerBuilder, Definition};
  * McpToolCompilerPassTest.
  *
  * @author Konrad Michalik <hej@konradmichalik.dev>
+ *
+ * @phpstan-import-type ToolEntry from ExposurePolicy
  */
 final class McpToolCompilerPassTest extends TestCase
 {
@@ -39,8 +41,19 @@ final class McpToolCompilerPassTest extends TestCase
             'name' => 'mcptool_plain',
             'description' => null,
             'readOnly' => false,
+            'destructive' => null,
+            'idempotent' => null,
             'excludedReason' => null,
         ], $mcpTools['mcptool_plain']);
+    }
+
+    #[Test]
+    public function keepsExplicitDestructiveAndIdempotentOverrides(): void
+    {
+        $mcpTools = $this->discover(['fixture' => McpToolController::class]);
+
+        self::assertTrue($mcpTools['mcptool_with_hints']['destructive']);
+        self::assertTrue($mcpTools['mcptool_with_hints']['idempotent']);
     }
 
     #[Test]
@@ -52,6 +65,8 @@ final class McpToolCompilerPassTest extends TestCase
             'name' => 'custom_name',
             'description' => 'Custom description.',
             'readOnly' => true,
+            'destructive' => null,
+            'idempotent' => null,
             'excludedReason' => null,
         ], $mcpTools['mcptool_with_options']);
     }
@@ -183,7 +198,7 @@ final class McpToolCompilerPassTest extends TestCase
     /**
      * @param array<string, class-string> $services
      *
-     * @return array<string, array{name: string, description: string|null, readOnly: bool, excludedReason: string|null}>
+     * @return array<string, ToolEntry>
      */
     private function discover(array $services): array
     {
@@ -206,7 +221,7 @@ final class McpToolCompilerPassTest extends TestCase
         (new RouteCompilerPass())->process($container);
         (new McpToolCompilerPass())->process($container);
 
-        /** @var array<string, array{name: string, description: string|null, readOnly: bool, excludedReason: string|null}> $mcpTools */
+        /** @var array<string, ToolEntry> $mcpTools */
         $mcpTools = $container->getDefinition(ExposurePolicy::class)->getArgument('$mcpTools');
 
         return $mcpTools;
@@ -220,7 +235,7 @@ final class McpToolCompilerPassTest extends TestCase
      * @param array{path: string, methods: list<string>, controller: string, env: string|null, requirements: array<string, string>} $route
      * @param array<string, string|null>                                                                                            $extraServices service id => class, deliberately not class-string since one test passes a non-existent class name
      *
-     * @return array<string, array{name: string, description: string|null, readOnly: bool, excludedReason: string|null}>
+     * @return array<string, ToolEntry>
      */
     private function discoverRawRoute(array $route, array $extraServices = []): array
     {
@@ -242,7 +257,7 @@ final class McpToolCompilerPassTest extends TestCase
 
         (new McpToolCompilerPass())->process($container);
 
-        /** @var array<string, array{name: string, description: string|null, readOnly: bool, excludedReason: string|null}> $mcpTools */
+        /** @var array<string, ToolEntry> $mcpTools */
         $mcpTools = $container->getDefinition(ExposurePolicy::class)->getArgument('$mcpTools');
 
         return $mcpTools;
@@ -251,7 +266,7 @@ final class McpToolCompilerPassTest extends TestCase
     /**
      * @param array<string, class-string> $services
      *
-     * @return array<string, array{name: string, description: string|null, readOnly: bool, excludedReason: string|null}>
+     * @return array<string, ToolEntry>
      */
     private function discoverSilencingWarnings(array $services): array
     {

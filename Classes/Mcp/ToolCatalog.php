@@ -16,6 +16,7 @@ namespace KonradMichalik\Typo3RoutingMcp\Mcp;
 use KonradMichalik\Typo3Routing\Routing\RouteRegistry;
 
 use function array_keys;
+use function in_array;
 
 /**
  * ToolCatalog.
@@ -49,14 +50,19 @@ final readonly class ToolCatalog
             }
 
             $route = $this->registry->getRoutes()[$routeName];
+            $method = $this->firstMethod($route['methods']);
+            $readOnly = $toolConfig['readOnly'];
 
+            // The MCP spec gives both hints meaning only when readOnlyHint is false.
             $definitions[] = new ToolDefinition(
                 name: $toolConfig['name'],
                 description: $toolConfig['description'],
                 inputSchema: $this->schemaFactory->build($this->registry->getArguments($routeName), $route['requirements']),
                 routeName: $routeName,
-                method: $this->firstMethod($route['methods']),
-                readOnly: $toolConfig['readOnly'],
+                method: $method,
+                readOnly: $readOnly,
+                destructive: $readOnly ? null : ($toolConfig['destructive'] ?? 'DELETE' === $method),
+                idempotent: $readOnly ? null : ($toolConfig['idempotent'] ?? in_array($method, ['PUT', 'DELETE'], true)),
             );
         }
 

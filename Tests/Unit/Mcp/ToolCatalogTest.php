@@ -16,7 +16,7 @@ namespace KonradMichalik\Typo3RoutingMcp\Tests\Unit\Mcp;
 use KonradMichalik\Typo3Routing\OpenApi\JsonSchemaMapper;
 use KonradMichalik\Typo3Routing\Routing\RouteRegistry;
 use KonradMichalik\Typo3RoutingMcp\Mcp\{ExposurePolicy, InputSchemaFactory, ToolCatalog};
-use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\{DataProvider, Test};
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
@@ -36,8 +36,8 @@ final class ToolCatalogTest extends TestCase
                 'secure_route' => ['path' => '/api/secure', 'methods' => ['GET'], 'controller' => 'ctrl::secure', 'env' => null, 'requirements' => []],
             ],
             [
-                'course_show' => ['name' => 'course_show', 'description' => 'Fetch a course.', 'readOnly' => true, 'excludedReason' => null],
-                'secure_route' => ['name' => 'secure_route', 'description' => null, 'readOnly' => false, 'excludedReason' => 'Guarded.'],
+                'course_show' => ['name' => 'course_show', 'description' => 'Fetch a course.', 'readOnly' => true, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
+                'secure_route' => ['name' => 'secure_route', 'description' => null, 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => 'Guarded.'],
             ],
             ['course_show' => [['name' => 'id', 'type' => 'string', 'source' => 'path', 'nullable' => false, 'hasDefault' => false, 'default' => null]]],
         )->list();
@@ -63,7 +63,7 @@ final class ToolCatalogTest extends TestCase
     {
         $definitions = $this->catalog(
             ['multi' => ['path' => '/api/multi', 'methods' => ['OPTIONS', 'POST'], 'controller' => 'ctrl::multi', 'env' => null, 'requirements' => []]],
-            ['multi' => ['name' => 'multi', 'description' => null, 'readOnly' => false, 'excludedReason' => null]],
+            ['multi' => ['name' => 'multi', 'description' => null, 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null]],
             ['multi' => []],
         )->list();
 
@@ -75,7 +75,7 @@ final class ToolCatalogTest extends TestCase
     {
         $definitions = $this->catalog(
             ['any' => ['path' => '/api/any', 'methods' => [], 'controller' => 'ctrl::any', 'env' => null, 'requirements' => []]],
-            ['any' => ['name' => 'any', 'description' => null, 'readOnly' => false, 'excludedReason' => null]],
+            ['any' => ['name' => 'any', 'description' => null, 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null]],
             ['any' => []],
         )->list();
 
@@ -83,9 +83,45 @@ final class ToolCatalogTest extends TestCase
     }
 
     /**
-     * @param array<string, array{path: string, methods: list<string>, controller: string, env: string|null, requirements: array<string, string>}> $routes
-     * @param array<string, array{name: string, description: string|null, readOnly: bool, excludedReason: string|null}>                            $mcpTools
-     * @param array<string, list<array{name: string, type: string|null, source: string, nullable: bool, hasDefault: bool, default: mixed}>>        $arguments
+     * @return iterable<string, array{string, bool, bool|null, bool|null, bool|null, bool|null}>
+     */
+    public static function hintCases(): iterable
+    {
+        yield 'GET write' => ['GET', false, null, null, false, false];
+        yield 'POST' => ['POST', false, null, null, false, false];
+        yield 'PATCH' => ['PATCH', false, null, null, false, false];
+        yield 'PUT' => ['PUT', false, null, null, false, true];
+        yield 'DELETE' => ['DELETE', false, null, null, true, true];
+        yield 'read-only DELETE carries neither' => ['DELETE', true, null, null, null, null];
+        yield 'read-only ignores overrides' => ['POST', true, true, true, null, null];
+        yield 'POST overridden' => ['POST', false, true, true, true, true];
+        yield 'DELETE overridden' => ['DELETE', false, false, false, false, false];
+    }
+
+    #[Test]
+    #[DataProvider('hintCases')]
+    public function derivesDestructiveAndIdempotentHintsFromTheMethodUnlessOverridden(
+        string $method,
+        bool $readOnly,
+        ?bool $destructiveOverride,
+        ?bool $idempotentOverride,
+        ?bool $expectedDestructive,
+        ?bool $expectedIdempotent,
+    ): void {
+        $definitions = $this->catalog(
+            ['tool' => ['path' => '/api/tool', 'methods' => [$method], 'controller' => 'ctrl::tool', 'env' => null, 'requirements' => []]],
+            ['tool' => ['name' => 'tool', 'description' => null, 'readOnly' => $readOnly, 'destructive' => $destructiveOverride, 'idempotent' => $idempotentOverride, 'excludedReason' => null]],
+            ['tool' => []],
+        )->list();
+
+        self::assertSame($expectedDestructive, $definitions[0]->destructive);
+        self::assertSame($expectedIdempotent, $definitions[0]->idempotent);
+    }
+
+    /**
+     * @param array<string, array{path: string, methods: list<string>, controller: string, env: string|null, requirements: array<string, string>}>                     $routes
+     * @param array<string, array{name: string, description: string|null, readOnly: bool, destructive: bool|null, idempotent: bool|null, excludedReason: string|null}> $mcpTools
+     * @param array<string, list<array{name: string, type: string|null, source: string, nullable: bool, hasDefault: bool, default: mixed}>>                            $arguments
      */
     private function catalog(array $routes, array $mcpTools, array $arguments): ToolCatalog
     {

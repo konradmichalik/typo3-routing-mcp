@@ -39,6 +39,13 @@ final class McpToolController implements RouteControllerInterface
         return new JsonResponse(['ok' => true]);
     }
 
+    #[Route(path: '/api/mcptool/with-hints', name: 'mcptool_with_hints', methods: ['POST'])]
+    #[McpTool(destructive: true, idempotent: true)]
+    public function withHints(): JsonResponse
+    {
+        return new JsonResponse(['ok' => true]);
+    }
+
     #[Route(path: '/api/mcptool/no-tool', name: 'mcptool_no_tool')]
     public function noMcpTool(): JsonResponse
     {

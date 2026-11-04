@@ -95,9 +95,9 @@ final class McpToolsCommandTest extends TestCase
         ];
 
         $mcpTools = [
-            'course_show' => ['name' => 'course_show', 'description' => 'Fetch a course.', 'readOnly' => true, 'excludedReason' => null],
-            'secure_route' => ['name' => 'secure_route', 'description' => null, 'readOnly' => false, 'excludedReason' => 'Guarded by an authenticator requiring a user session, which an MCP client cannot provide (Acme\\FrontendUserAuthenticator).'],
-            'dev_only_route' => ['name' => 'dev_only_route', 'description' => null, 'readOnly' => false, 'excludedReason' => null],
+            'course_show' => ['name' => 'course_show', 'description' => 'Fetch a course.', 'readOnly' => true, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
+            'secure_route' => ['name' => 'secure_route', 'description' => null, 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => 'Guarded by an authenticator requiring a user session, which an MCP client cannot provide (Acme\\FrontendUserAuthenticator).'],
+            'dev_only_route' => ['name' => 'dev_only_route', 'description' => null, 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
         ];
 
         $registry = new RouteRegistry($routes, new ServiceLocator([]), arguments: $arguments);

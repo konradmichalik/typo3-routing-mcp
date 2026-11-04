@@ -28,6 +28,8 @@ use function strtolower;
  * ControllerInvoker::isVisibleInCurrentContext() exactly (case-insensitive match
  * against the first "/"-separated segment of the current TYPO3 context).
  *
+ * @phpstan-type ToolEntry array{name: string, description: string|null, readOnly: bool, destructive: bool|null, idempotent: bool|null, excludedReason: string|null}
+ *
  * @internal
  *
  * @author Konrad Michalik <hej@konradmichalik.dev>
@@ -36,7 +38,7 @@ final readonly class ExposurePolicy
 {
     public function __construct(
         private RouteRegistry $registry,
-        /** @var array<string, array{name: string, description: string|null, readOnly: bool, excludedReason: string|null}> */
+        /** @var array<string, ToolEntry> */
         private array $mcpTools,
     ) {}
 
@@ -51,7 +53,7 @@ final readonly class ExposurePolicy
     }
 
     /**
-     * @return array{name: string, description: string|null, readOnly: bool}|null
+     * @return array{name: string, description: string|null, readOnly: bool, destructive: bool|null, idempotent: bool|null}|null
      */
     public function toolConfig(string $routeName): ?array
     {
@@ -65,11 +67,13 @@ final readonly class ExposurePolicy
             'name' => $entry['name'],
             'description' => $entry['description'],
             'readOnly' => $entry['readOnly'],
+            'destructive' => $entry['destructive'],
+            'idempotent' => $entry['idempotent'],
         ];
     }
 
     /**
-     * @return array<string, array{name: string, description: string|null, readOnly: bool, excludedReason: string|null}>
+     * @return array<string, ToolEntry>
      */
     public function all(): array
     {

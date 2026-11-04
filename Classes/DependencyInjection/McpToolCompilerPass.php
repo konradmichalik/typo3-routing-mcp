@@ -83,6 +83,8 @@ final readonly class McpToolCompilerPass implements CompilerPassInterface
                 'name' => $mcpTool->name ?? $name,
                 'description' => $mcpTool->description ?? $route['description'] ?? null,
                 'readOnly' => $mcpTool->readOnly,
+                'destructive' => $mcpTool->destructive,
+                'idempotent' => $mcpTool->idempotent,
                 'excludedReason' => $this->exclusionReason($name, $authenticators, $requestTokenScopes),
             ];
         }

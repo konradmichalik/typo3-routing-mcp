@@ -62,6 +62,16 @@ use KonradMichalik\Typo3RoutingMcp\Attribute\McpTool;
 public function show(int $id): ResponseInterface { /* … */ }
 ```
 
+`#[McpTool]` takes these optional arguments:
+
+| Argument | Default | Description |
+| --- | --- | --- |
+| `name` | route name | Tool name shown to the client. |
+| `description` | route `description` | Tool description shown to the client. |
+| `readOnly` | `false` | Sets `readOnlyHint`. A read-only tool carries no `destructiveHint` or `idempotentHint`. |
+| `destructive` | derived | Overrides `destructiveHint`, which is `true` for `DELETE` routes and `false` otherwise. |
+| `idempotent` | derived | Overrides `idempotentHint`, which is `true` for `PUT` and `DELETE` routes and `false` otherwise. |
+
 Then audit what's exposed, via the TYPO3 console:
 
 ```bash

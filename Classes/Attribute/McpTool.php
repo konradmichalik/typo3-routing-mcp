@@ -25,9 +25,17 @@ use Attribute;
 #[Attribute(Attribute::TARGET_METHOD)]
 final readonly class McpTool
 {
+    /**
+     * @param bool|null $destructive overrides the `destructiveHint` derived from the HTTP method (true for DELETE);
+     *                               ignored when $readOnly is true
+     * @param bool|null $idempotent  overrides the `idempotentHint` derived from the HTTP method (true for PUT and
+     *                               DELETE); ignored when $readOnly is true
+     */
     public function __construct(
         public ?string $name = null,
         public ?string $description = null,
         public bool $readOnly = false,
+        public ?bool $destructive = null,
+        public ?bool $idempotent = null,
     ) {}
 }
