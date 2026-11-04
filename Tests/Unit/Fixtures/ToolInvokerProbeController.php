@@ -56,4 +56,25 @@ final class ToolInvokerProbeController implements RouteControllerInterface
     {
         return new JsonResponse(['id' => $id]);
     }
+
+    public function listBody(): JsonResponse
+    {
+        return new JsonResponse([1, 2, 3]);
+    }
+
+    public function emptyObject(): Response
+    {
+        $response = new Response('php://temp', 200, ['Content-Type' => 'application/json']);
+        $response->getBody()->write('{}');
+
+        return $response;
+    }
+
+    public function nulByteKey(): Response
+    {
+        $response = new Response('php://temp', 200, ['Content-Type' => 'application/json']);
+        $response->getBody()->write('{"\u0000id":7}');
+
+        return $response;
+    }
 }

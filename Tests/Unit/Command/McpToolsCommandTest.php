@@ -17,7 +17,7 @@ use KonradMichalik\Ttt\Attribute\WithEnvironment;
 use KonradMichalik\Typo3Routing\OpenApi\JsonSchemaMapper;
 use KonradMichalik\Typo3Routing\Routing\RouteRegistry;
 use KonradMichalik\Typo3RoutingMcp\Command\McpToolsCommand;
-use KonradMichalik\Typo3RoutingMcp\Mcp\{ExposurePolicy, InputSchemaFactory, ToolCatalog};
+use KonradMichalik\Typo3RoutingMcp\Mcp\{ExposurePolicy, InputSchemaFactory, OutputSchemaFactory, ToolCatalog};
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -71,7 +71,7 @@ final class McpToolsCommandTest extends TestCase
     {
         $registry = new RouteRegistry([], new ServiceLocator([]));
         $exposurePolicy = new ExposurePolicy($registry, []);
-        $toolCatalog = new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory(new JsonSchemaMapper()));
+        $toolCatalog = new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory(new JsonSchemaMapper()), new OutputSchemaFactory(new JsonSchemaMapper()));
         $tester = new CommandTester(new McpToolsCommand($exposurePolicy, $toolCatalog));
 
         $exitCode = $tester->execute([]);
@@ -102,7 +102,7 @@ final class McpToolsCommandTest extends TestCase
 
         $registry = new RouteRegistry($routes, new ServiceLocator([]), arguments: $arguments);
         $exposurePolicy = new ExposurePolicy($registry, $mcpTools);
-        $toolCatalog = new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory(new JsonSchemaMapper()));
+        $toolCatalog = new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory(new JsonSchemaMapper()), new OutputSchemaFactory(new JsonSchemaMapper()));
 
         return new CommandTester(new McpToolsCommand($exposurePolicy, $toolCatalog));
     }

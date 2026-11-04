@@ -32,5 +32,7 @@ final readonly class ToolDefinition
         public bool $readOnly,
         public ?bool $destructive,
         public ?bool $idempotent,
+        /** @var array<string, mixed>|null */
+        public ?array $outputSchema,
     ) {}
 }

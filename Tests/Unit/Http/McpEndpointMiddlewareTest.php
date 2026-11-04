@@ -20,8 +20,8 @@ use KonradMichalik\Typo3Routing\Http\{RouteUrlGenerator, SiteBasePathResolver};
 use KonradMichalik\Typo3Routing\OpenApi\JsonSchemaMapper;
 use KonradMichalik\Typo3Routing\Routing\{ControllerArgumentResolver, ControllerInvoker, RouteInvoker, RouteRegistry, SiteLanguageScope};
 use KonradMichalik\Typo3RoutingMcp\Http\{McpAuthGuard, McpEndpointMiddleware};
-use KonradMichalik\Typo3RoutingMcp\Mcp\{ExposurePolicy, InputSchemaFactory, ToolCatalog, ToolInvoker};
-use KonradMichalik\Typo3RoutingMcp\Tests\Unit\Fixtures\ToolInvokerProbeController;
+use KonradMichalik\Typo3RoutingMcp\Mcp\{ExposurePolicy, InputSchemaFactory, OutputSchemaFactory, ToolCatalog, ToolInvoker};
+use KonradMichalik\Typo3RoutingMcp\Tests\Unit\Fixtures\{CountDto, ToolInvokerProbeController};
 use PHPUnit\Framework\Attributes\{CoversClass, Test};
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
@@ -129,6 +129,40 @@ final class McpEndpointMiddlewareTest extends TestCase
 
         self::assertSame(['readOnlyHint' => true], $tools['success']['annotations']);
         self::assertSame(['readOnlyHint' => false, 'destructiveHint' => true, 'idempotentHint' => true], $tools['remove']['annotations']);
+    }
+
+    #[Test]
+    #[WithEnvVar(self::ENV_NAME, self::TOKEN)]
+    public function listsAnOutputSchemaOnlyForAToolWhoseRouteDeclaresReturns(): void
+    {
+        $tools = $this->listTools();
+
+        self::assertSame(
+            ['type' => 'object', 'properties' => ['count' => ['type' => 'integer']], 'required' => ['count']],
+            $tools['success']['outputSchema'],
+        );
+        self::assertArrayNotHasKey('outputSchema', $tools['echo']);
+    }
+
+    #[Test]
+    #[WithEnvVar(self::ENV_NAME, self::TOKEN)]
+    public function callsAToolAndReturnsStructuredContentNextToTheTextContent(): void
+    {
+        $sessionId = $this->sessionIdFrom($this->initialize($this->middleware()));
+
+        $response = $this->middleware()->process(
+            $this->mcpRequest([
+                'jsonrpc' => '2.0',
+                'id' => 3,
+                'method' => 'tools/call',
+                'params' => ['name' => 'success', 'arguments' => []],
+            ], $sessionId),
+            $this->handler(new Response()),
+        );
+
+        $envelope = json_decode((string) $response->getBody(), true, 512, \JSON_THROW_ON_ERROR);
+        self::assertSame(['count' => 3], $envelope['result']['structuredContent']);
+        self::assertJsonStringEqualsJsonString('{"count":3}', $envelope['result']['content'][0]['text']);
     }
 
     #[Test]
@@ -320,7 +354,8 @@ final class McpEndpointMiddlewareTest extends TestCase
             'echo' => ['name' => 'echo', 'description' => 'Echoes the given id.', 'readOnly' => true, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
             'remove' => ['name' => 'remove', 'description' => 'Deletes something.', 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
         ]);
-        $catalog = new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory(new JsonSchemaMapper()));
+        $schemas = new JsonSchemaMapper();
+        $catalog = new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory($schemas), new OutputSchemaFactory($schemas));
         $invoker = new ToolInvoker(new RouteInvoker(
             $registry,
             new ControllerInvoker($registry, new ControllerArgumentResolver($this->createMock(PersistenceManagerInterface::class))),
@@ -364,6 +399,10 @@ final class McpEndpointMiddlewareTest extends TestCase
             'probe' => static fn (): ToolInvokerProbeController => new ToolInvokerProbeController(),
         ]);
 
-        return new RouteRegistry($routes, $locator, arguments: $arguments);
+        $returns = [
+            'success' => [['status' => 200, 'schema' => CountDto::class, 'collection' => false, 'description' => null]],
+        ];
+
+        return new RouteRegistry($routes, $locator, arguments: $arguments, returns: $returns);
     }
 }

@@ -35,6 +35,7 @@ final readonly class ToolCatalog
         private RouteRegistry $registry,
         private ExposurePolicy $exposurePolicy,
         private InputSchemaFactory $schemaFactory,
+        private OutputSchemaFactory $outputSchemaFactory,
     ) {}
 
     /**
@@ -53,7 +54,6 @@ final readonly class ToolCatalog
             $method = $this->firstMethod($route['methods']);
             $readOnly = $toolConfig['readOnly'];
 
-            // The MCP spec gives both hints meaning only when readOnlyHint is false.
             $definitions[] = new ToolDefinition(
                 name: $toolConfig['name'],
                 description: $toolConfig['description'],
@@ -61,12 +61,26 @@ final readonly class ToolCatalog
                 routeName: $routeName,
                 method: $method,
                 readOnly: $readOnly,
-                destructive: $readOnly ? null : ($toolConfig['destructive'] ?? 'DELETE' === $method),
-                idempotent: $readOnly ? null : ($toolConfig['idempotent'] ?? in_array($method, ['PUT', 'DELETE'], true)),
+                destructive: $this->destructiveHint($readOnly, $toolConfig['destructive'], $method),
+                idempotent: $this->idempotentHint($readOnly, $toolConfig['idempotent'], $method),
+                outputSchema: $this->outputSchemaFactory->build($this->registry->getReturns($routeName)),
             );
         }
 
         return $definitions;
+    }
+
+    /**
+     * The MCP spec gives both hints meaning only when readOnlyHint is false.
+     */
+    private function destructiveHint(bool $readOnly, ?bool $override, string $method): ?bool
+    {
+        return $readOnly ? null : ($override ?? ('DELETE' === $method));
+    }
+
+    private function idempotentHint(bool $readOnly, ?bool $override, string $method): ?bool
+    {
+        return $readOnly ? null : ($override ?? in_array($method, ['PUT', 'DELETE'], true));
     }
 
     /**

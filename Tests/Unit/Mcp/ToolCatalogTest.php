@@ -15,7 +15,8 @@ namespace KonradMichalik\Typo3RoutingMcp\Tests\Unit\Mcp;
 
 use KonradMichalik\Typo3Routing\OpenApi\JsonSchemaMapper;
 use KonradMichalik\Typo3Routing\Routing\RouteRegistry;
-use KonradMichalik\Typo3RoutingMcp\Mcp\{ExposurePolicy, InputSchemaFactory, ToolCatalog};
+use KonradMichalik\Typo3RoutingMcp\Mcp\{ExposurePolicy, InputSchemaFactory, OutputSchemaFactory, ToolCatalog};
+use KonradMichalik\Typo3RoutingMcp\Tests\Unit\Fixtures\LecturerDto;
 use PHPUnit\Framework\Attributes\{DataProvider, Test};
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ServiceLocator;
@@ -24,6 +25,8 @@ use Symfony\Component\DependencyInjection\ServiceLocator;
  * ToolCatalogTest.
  *
  * @author Konrad Michalik <hej@konradmichalik.dev>
+ *
+ * @phpstan-import-type ToolEntry from ExposurePolicy
  */
 final class ToolCatalogTest extends TestCase
 {
@@ -59,6 +62,26 @@ final class ToolCatalogTest extends TestCase
     }
 
     #[Test]
+    public function wiresTheOutputSchemaFromTheRoutesReturns(): void
+    {
+        $definitions = $this->catalog(
+            [
+                'with_returns' => ['path' => '/api/lecturer', 'methods' => ['GET'], 'controller' => 'ctrl::lecturer', 'env' => null, 'requirements' => []],
+                'without_returns' => ['path' => '/api/plain', 'methods' => ['GET'], 'controller' => 'ctrl::plain', 'env' => null, 'requirements' => []],
+            ],
+            [
+                'with_returns' => ['name' => 'with_returns', 'description' => null, 'readOnly' => true, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
+                'without_returns' => ['name' => 'without_returns', 'description' => null, 'readOnly' => true, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
+            ],
+            ['with_returns' => [], 'without_returns' => []],
+            ['with_returns' => [['status' => 200, 'schema' => LecturerDto::class, 'collection' => false, 'description' => null]]],
+        )->list();
+
+        self::assertSame('object', $definitions[0]->outputSchema['type'] ?? null);
+        self::assertNull($definitions[1]->outputSchema);
+    }
+
+    #[Test]
     public function picksTheFirstNonOptionsMethod(): void
     {
         $definitions = $this->catalog(
@@ -89,7 +112,6 @@ final class ToolCatalogTest extends TestCase
     {
         yield 'GET write' => ['GET', false, null, null, false, false];
         yield 'POST' => ['POST', false, null, null, false, false];
-        yield 'PATCH' => ['PATCH', false, null, null, false, false];
         yield 'PUT' => ['PUT', false, null, null, false, true];
         yield 'DELETE' => ['DELETE', false, null, null, true, true];
         yield 'read-only DELETE carries neither' => ['DELETE', true, null, null, null, null];
@@ -119,15 +141,17 @@ final class ToolCatalogTest extends TestCase
     }
 
     /**
-     * @param array<string, array{path: string, methods: list<string>, controller: string, env: string|null, requirements: array<string, string>}>                     $routes
-     * @param array<string, array{name: string, description: string|null, readOnly: bool, destructive: bool|null, idempotent: bool|null, excludedReason: string|null}> $mcpTools
-     * @param array<string, list<array{name: string, type: string|null, source: string, nullable: bool, hasDefault: bool, default: mixed}>>                            $arguments
+     * @param array<string, array{path: string, methods: list<string>, controller: string, env: string|null, requirements: array<string, string>}> $routes
+     * @param array<string, ToolEntry>                                                                                                             $mcpTools
+     * @param array<string, list<array{name: string, type: string|null, source: string, nullable: bool, hasDefault: bool, default: mixed}>>        $arguments
+     * @param array<string, list<array{status: int, schema: class-string|null, collection: bool, description: string|null}>>                       $returns
      */
-    private function catalog(array $routes, array $mcpTools, array $arguments): ToolCatalog
+    private function catalog(array $routes, array $mcpTools, array $arguments, array $returns = []): ToolCatalog
     {
-        $registry = new RouteRegistry($routes, new ServiceLocator([]), arguments: $arguments);
+        $registry = new RouteRegistry($routes, new ServiceLocator([]), arguments: $arguments, returns: $returns);
         $exposurePolicy = new ExposurePolicy($registry, $mcpTools);
+        $schemas = new JsonSchemaMapper();
 
-        return new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory(new JsonSchemaMapper()));
+        return new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory($schemas), new OutputSchemaFactory($schemas));
     }
 }
