@@ -80,7 +80,7 @@ final readonly class ToolCatalog
 
     private function idempotentHint(bool $readOnly, ?bool $override, string $method): ?bool
     {
-        return $readOnly ? null : ($override ?? in_array($method, ['PUT', 'DELETE'], true));
+        return $readOnly ? null : ($override ?? in_array($method, ['GET', 'PUT', 'DELETE'], true));
     }
 
     /**

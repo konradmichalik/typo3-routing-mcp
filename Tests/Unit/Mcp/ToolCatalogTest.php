@@ -110,7 +110,7 @@ final class ToolCatalogTest extends TestCase
      */
     public static function hintCases(): iterable
     {
-        yield 'GET write' => ['GET', false, null, null, false, false];
+        yield 'GET write' => ['GET', false, null, null, false, true];
         yield 'POST' => ['POST', false, null, null, false, false];
         yield 'PUT' => ['PUT', false, null, null, false, true];
         yield 'DELETE' => ['DELETE', false, null, null, true, true];

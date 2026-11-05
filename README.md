@@ -70,7 +70,7 @@ public function show(int $id): ResponseInterface { /* … */ }
 | `description` | route `description` | Tool description shown to the client. |
 | `readOnly` | `false` | Sets `readOnlyHint`. A read-only tool carries no `destructiveHint` or `idempotentHint`. |
 | `destructive` | derived | Overrides `destructiveHint`, which is `true` for `DELETE` routes and `false` otherwise. |
-| `idempotent` | derived | Overrides `idempotentHint`, which is `true` for `PUT` and `DELETE` routes and `false` otherwise. |
+| `idempotent` | derived | Overrides `idempotentHint`, which is `true` for `GET`, `PUT` and `DELETE` routes and `false` otherwise. |
 
 A route with a [`#[Returns]`](https://github.com/konradmichalik/typo3-routing/blob/main/docs/operating/openapi.md#declaring-a-response-schema) DTO gets an `outputSchema` built from it. Every successful call whose body is a JSON object returns it as `structuredContent` next to the text content. The schema is only set when every declared 2xx response is the same single DTO. Collections get none, because MCP revisions before `2026-07-28` only accept an object schema. Nullable DTO properties also accept `null`.
 
