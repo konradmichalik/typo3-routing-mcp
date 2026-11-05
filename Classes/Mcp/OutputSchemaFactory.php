@@ -25,14 +25,11 @@ use function array_filter;
 use function array_map;
 use function array_unique;
 use function array_values;
-use function assert;
 use function class_exists;
 use function count;
 use function enum_exists;
 use function in_array;
 use function is_a;
-use function is_array;
-use function is_string;
 
 /**
  * OutputSchemaFactory.
@@ -69,7 +66,7 @@ final readonly class OutputSchemaFactory
             return null;
         }
 
-        return $this->withNullability($this->schemas->objectSchemaForClass($classes[0]), $classes[0]);
+        return $this->schemas->objectSchemaForClass($classes[0]);
     }
 
     /**
@@ -114,56 +111,6 @@ final readonly class OutputSchemaFactory
         return class_exists($name)
             && !is_a($name, DomainObjectInterface::class, true)
             && $this->isPreciselyMappable($name, $visiting);
-    }
-
-    /**
-     * JsonSchemaMapper keeps a nullable property's plain type (typo3-routing issue #160).
-     * Drop this once a release with that fix is required.
-     *
-     * @param array<string, mixed> $schema
-     * @param class-string         $class
-     *
-     * @return array<string, mixed>
-     */
-    private function withNullability(array $schema, string $class): array
-    {
-        /** @var array<string, array<string, mixed>> $properties */
-        $properties = $schema['properties'];
-        foreach ($this->publicProperties($class) as $property) {
-            $type = $property->getType();
-            assert($type instanceof ReflectionNamedType);
-
-            $name = $property->getName();
-            $typeName = $type->getName();
-            if (!$type->isBuiltin() && !enum_exists($typeName) && class_exists($typeName)) {
-                $properties[$name] = $this->withNullability($properties[$name], $typeName);
-            }
-
-            if ($type->allowsNull()) {
-                $properties[$name] = $this->nullable($properties[$name]);
-            }
-        }
-
-        return [...$schema, 'properties' => $properties];
-    }
-
-    /**
-     * @param array<string, mixed> $schema
-     *
-     * @return array<string, mixed>
-     */
-    private function nullable(array $schema): array
-    {
-        if (!is_string($schema['type'] ?? null)) {
-            return $schema;
-        }
-
-        $nullable = [...$schema, 'type' => [$schema['type'], 'null']];
-        if (is_array($schema['enum'] ?? null)) {
-            $nullable['enum'] = [...$schema['enum'], null];
-        }
-
-        return $nullable;
     }
 
     /**

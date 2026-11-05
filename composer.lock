@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d9f69ccba611d4eca5f3f372098a12cd",
+    "content-hash": "25b3d732ff32d6b88f1b918a1ea38f72",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1205,22 +1205,23 @@
         },
         {
             "name": "konradmichalik/typo3-routing",
-            "version": "1.4.0",
+            "version": "1.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/konradmichalik/typo3-routing.git",
-                "reference": "18eb998bf20e360a7166ca19723875afab352b0b"
+                "reference": "85c6119bfaa7508bae83c581ba29d99517cb12df"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/konradmichalik/typo3-routing/zipball/18eb998bf20e360a7166ca19723875afab352b0b",
-                "reference": "18eb998bf20e360a7166ca19723875afab352b0b",
+                "url": "https://api.github.com/repos/konradmichalik/typo3-routing/zipball/85c6119bfaa7508bae83c581ba29d99517cb12df",
+                "reference": "85c6119bfaa7508bae83c581ba29d99517cb12df",
                 "shasum": ""
             },
             "require": {
                 "ext-mbstring": "*",
                 "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
                 "psr/container": "^1.1 || ^2.0",
+                "psr/event-dispatcher": "^1.0",
                 "psr/http-message": "^1.0 || ^2.0",
                 "psr/http-server-handler": "^1.0.2",
                 "psr/http-server-middleware": "^1.0.2",
@@ -1234,8 +1235,8 @@
                 "typo3fluid/fluid": "^4.2 || ^5.0"
             },
             "require-dev": {
-                "eliashaeussler/version-bumper": "^4.1.0",
-                "konradmichalik/ttt": "^0.4.0",
+                "eliashaeussler/version-bumper": "^4.1.2",
+                "konradmichalik/ttt": "^0.6.0",
                 "phpunit/phpunit": "^11.0 || ^12.0 || ^13.0",
                 "typo3/cms-base-distribution": "^13.4 || ^14.0",
                 "typo3/cms-lowlevel": "^13.4 || ^14.0",
@@ -1271,9 +1272,10 @@
             "description": "Attribute Routing - Register frontend endpoints via PHP attributes on controller methods, as an attribute-based alternative to the missing frontend counterpart of AjaxRoutes.php.",
             "support": {
                 "issues": "https://github.com/konradmichalik/typo3-routing/issues",
-                "source": "https://github.com/konradmichalik/typo3-routing/tree/1.4.0"
+                "source": "https://github.com/konradmichalik/typo3-routing/tree/1.5.0"
             },
-            "time": "2026-09-09T11:05:31+00:00"
+            "time": "2026-11-05T14:22:40+00:00",
+            "published-time": "2026-11-05T14:26:16+00:00"
         },
         {
             "name": "lolli42/finediff",

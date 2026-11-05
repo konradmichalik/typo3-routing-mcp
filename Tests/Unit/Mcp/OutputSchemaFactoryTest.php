@@ -38,7 +38,8 @@ final class OutputSchemaFactoryTest extends TestCase
             self::entry(404, null),
         ]);
 
-        self::assertSame([
+        // Compared as JSON, the form the client validates: `mixed` has to encode as {} rather than [].
+        self::assertSame(json_encode([
             'type' => 'object',
             'properties' => [
                 'id' => ['type' => 'integer'],
@@ -53,10 +54,10 @@ final class OutputSchemaFactoryTest extends TestCase
                 ],
                 'subtitle' => ['type' => ['string', 'null']],
                 'level' => ['type' => ['string', 'null'], 'enum' => ['beginner', 'advanced', null]],
-                'meta' => [],
+                'meta' => (object) [],
             ],
             'required' => ['id', 'title', 'lecturer'],
-        ], $schema);
+        ]), json_encode($schema));
     }
 
     #[Test]
@@ -67,12 +68,17 @@ final class OutputSchemaFactoryTest extends TestCase
             'properties' => [
                 'page' => ['type' => 'integer'],
                 'owner' => [
-                    'type' => ['object', 'null'],
-                    'properties' => [
-                        'name' => ['type' => 'string'],
-                        'room' => ['type' => ['integer', 'null']],
+                    'anyOf' => [
+                        [
+                            'type' => 'object',
+                            'properties' => [
+                                'name' => ['type' => 'string'],
+                                'room' => ['type' => ['integer', 'null']],
+                            ],
+                            'required' => ['name'],
+                        ],
+                        ['type' => 'null'],
                     ],
-                    'required' => ['name'],
                 ],
             ],
         ], $this->factory()->build([self::entry(200, PageDto::class)]));

@@ -151,7 +151,7 @@ final class ToolInvokerTest extends TestCase
 
         return new RouteInvoker(
             $registry,
-            new ControllerInvoker($registry, new ControllerArgumentResolver($this->createMock(PersistenceManagerInterface::class))),
+            new ControllerInvoker($registry, new ControllerArgumentResolver($this->createMock(PersistenceManagerInterface::class)), $this->createMock(LogManager::class)),
             new AccessGuard($registry, new Context()),
             new RouteUrlGenerator($registry, new SiteBasePathResolver()),
             new SiteLanguageScope($this->createMock(SiteFinder::class), $this->createMock(LogManager::class)),
