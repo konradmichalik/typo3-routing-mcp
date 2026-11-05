@@ -57,7 +57,10 @@ final readonly class McpEndpointMiddleware implements MiddlewareInterface
         invokes one #[McpTool]-annotated route. Read a tool's description and
         inputSchema before calling it: arguments are validated against the same
         requirements the underlying HTTP route enforces. Tools annotated read-only
-        are safe to call without side effects; others may mutate application state.
+        are safe to call without side effects; others may mutate application state,
+        and their destructiveHint and idempotentHint tell a delete apart from a
+        repeatable update. A successful JSON object result is also returned as
+        structuredContent, matching the tool's outputSchema when it declares one.
         On error, the tool result carries the full RFC 9457 problem document
         (type/title/status/detail/instance) as its content, not just a message —
         inspect `status` to distinguish, for example, a 404 from a 422.
@@ -127,7 +130,12 @@ final readonly class McpEndpointMiddleware implements MiddlewareInterface
                 name: $tool->name,
                 description: $tool->description,
                 inputSchema: $inputSchema,
-                annotations: new ToolAnnotations(readOnlyHint: $tool->readOnly),
+                annotations: new ToolAnnotations(
+                    readOnlyHint: $tool->readOnly,
+                    destructiveHint: $tool->destructive,
+                    idempotentHint: $tool->idempotent,
+                ),
+                outputSchema: $tool->outputSchema,
             );
         }
 

@@ -48,6 +48,27 @@ final class ToolInvokerTest extends TestCase
         $content = $result->content[0];
         self::assertInstanceOf(TextContent::class, $content);
         self::assertJsonStringEqualsJsonString('{"count":3}', (string) $content->text);
+        self::assertSame(['count' => 3], $result->structuredContent);
+    }
+
+    #[Test]
+    public function carriesNoStructuredContentForAJsonListBody(): void
+    {
+        $result = $this->toolInvoker()->invoke('listBody', [], $this->request());
+
+        self::assertFalse($result->isError);
+        self::assertNull($result->structuredContent);
+    }
+
+    #[Test]
+    public function keepsAnEmptyJsonObjectAnObject(): void
+    {
+        $result = $this->toolInvoker()->invoke('emptyObject', [], $this->request());
+
+        self::assertSame('{"structuredContent":{}}', json_encode(['structuredContent' => $result->structuredContent], \JSON_THROW_ON_ERROR));
+        $content = $result->content[0];
+        self::assertInstanceOf(TextContent::class, $content);
+        self::assertSame('{}', $content->text);
     }
 
     #[Test]
@@ -56,6 +77,7 @@ final class ToolInvokerTest extends TestCase
         $result = $this->toolInvoker()->invoke('problem', [], $this->request());
 
         self::assertTrue($result->isError);
+        self::assertNull($result->structuredContent);
         $content = $result->content[0];
         self::assertInstanceOf(TextContent::class, $content);
         $decoded = json_decode((string) $content->text, true, 512, \JSON_THROW_ON_ERROR);
@@ -92,6 +114,19 @@ final class ToolInvokerTest extends TestCase
         $content = $result->content[0];
         self::assertInstanceOf(TextContent::class, $content);
         self::assertSame('null', $content->text);
+        self::assertNull($result->structuredContent);
+    }
+
+    #[Test]
+    public function returnsTextContentWithoutStructuredContentForAnObjectKeyStartingWithANulByte(): void
+    {
+        $result = $this->toolInvoker()->invoke('nulByteKey', [], $this->request());
+
+        self::assertFalse($result->isError);
+        $content = $result->content[0];
+        self::assertInstanceOf(TextContent::class, $content);
+        self::assertSame("{\n    \"\\u0000id\": 7\n}", $content->text);
+        self::assertNull($result->structuredContent);
     }
 
     #[Test]
@@ -133,6 +168,9 @@ final class ToolInvokerTest extends TestCase
             'malformedJson' => ['path' => '/api/malformed', 'methods' => ['GET'], 'controller' => 'probe::malformedJson', 'env' => null, 'requirements' => []],
             'emptyBody' => ['path' => '/api/empty', 'methods' => ['GET'], 'controller' => 'probe::emptyBody', 'env' => null, 'requirements' => []],
             'echo' => ['path' => '/api/echo/{id}', 'methods' => ['GET'], 'controller' => 'probe::echoId', 'env' => null, 'requirements' => ['id' => '\d+']],
+            'listBody' => ['path' => '/api/list', 'methods' => ['GET'], 'controller' => 'probe::listBody', 'env' => null, 'requirements' => []],
+            'emptyObject' => ['path' => '/api/empty-object', 'methods' => ['GET'], 'controller' => 'probe::emptyObject', 'env' => null, 'requirements' => []],
+            'nulByteKey' => ['path' => '/api/nul-byte-key', 'methods' => ['GET'], 'controller' => 'probe::nulByteKey', 'env' => null, 'requirements' => []],
         ];
 
         /** @var array<string, list<array{name: string, type: string|null, source: string, nullable: bool, hasDefault: bool, default: mixed}>> $arguments */
@@ -143,6 +181,9 @@ final class ToolInvokerTest extends TestCase
             'malformedJson' => [],
             'emptyBody' => [],
             'echo' => [['name' => 'id', 'type' => 'int', 'source' => 'path', 'nullable' => false, 'hasDefault' => false, 'default' => null]],
+            'listBody' => [],
+            'emptyObject' => [],
+            'nulByteKey' => [],
         ];
 
         $locator = new ServiceLocator([

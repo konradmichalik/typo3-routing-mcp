@@ -24,6 +24,8 @@ use Symfony\Component\DependencyInjection\ServiceLocator;
  * ExposurePolicyTest.
  *
  * @author Konrad Michalik <hej@konradmichalik.dev>
+ *
+ * @phpstan-import-type ToolEntry from ExposurePolicy
  */
 final class ExposurePolicyTest extends TestCase
 {
@@ -32,11 +34,11 @@ final class ExposurePolicyTest extends TestCase
     {
         $policy = $this->policy(
             ['course_show' => ['path' => '/api/courses/{id}', 'methods' => ['GET'], 'controller' => 'ctrl::show', 'env' => null, 'requirements' => []]],
-            ['course_show' => ['name' => 'course_show', 'description' => null, 'readOnly' => false, 'excludedReason' => null]],
+            ['course_show' => ['name' => 'course_show', 'description' => null, 'readOnly' => false, 'destructive' => true, 'idempotent' => false, 'excludedReason' => null]],
         );
 
         self::assertTrue($policy->isExposed('course_show'));
-        self::assertSame(['name' => 'course_show', 'description' => null, 'readOnly' => false], $policy->toolConfig('course_show'));
+        self::assertSame(['name' => 'course_show', 'description' => null, 'readOnly' => false, 'destructive' => true, 'idempotent' => false], $policy->toolConfig('course_show'));
     }
 
     #[Test]
@@ -44,7 +46,7 @@ final class ExposurePolicyTest extends TestCase
     {
         $policy = $this->policy(
             ['secure' => ['path' => '/api/secure', 'methods' => ['GET'], 'controller' => 'ctrl::secure', 'env' => null, 'requirements' => []]],
-            ['secure' => ['name' => 'secure', 'description' => null, 'readOnly' => false, 'excludedReason' => 'Guarded by an authenticator.']],
+            ['secure' => ['name' => 'secure', 'description' => null, 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => 'Guarded by an authenticator.']],
         );
 
         self::assertFalse($policy->isExposed('secure'));
@@ -69,7 +71,7 @@ final class ExposurePolicyTest extends TestCase
     {
         $policy = $this->policy(
             ['dev_only' => ['path' => '/api/dev', 'methods' => ['GET'], 'controller' => 'ctrl::dev', 'env' => 'Development', 'requirements' => []]],
-            ['dev_only' => ['name' => 'dev_only', 'description' => null, 'readOnly' => false, 'excludedReason' => null]],
+            ['dev_only' => ['name' => 'dev_only', 'description' => null, 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null]],
         );
 
         self::assertFalse($policy->isExposed('dev_only'));
@@ -81,7 +83,7 @@ final class ExposurePolicyTest extends TestCase
     {
         $policy = $this->policy(
             ['dev_only' => ['path' => '/api/dev', 'methods' => ['GET'], 'controller' => 'ctrl::dev', 'env' => 'development', 'requirements' => []]],
-            ['dev_only' => ['name' => 'dev_only', 'description' => null, 'readOnly' => false, 'excludedReason' => null]],
+            ['dev_only' => ['name' => 'dev_only', 'description' => null, 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null]],
         );
 
         self::assertTrue($policy->isExposed('dev_only'));
@@ -93,7 +95,7 @@ final class ExposurePolicyTest extends TestCase
     {
         $policy = $this->policy(
             ['dev_only' => ['path' => '/api/dev', 'methods' => ['GET'], 'controller' => 'ctrl::dev', 'env' => 'Development', 'requirements' => []]],
-            ['dev_only' => ['name' => 'dev_only', 'description' => null, 'readOnly' => false, 'excludedReason' => null]],
+            ['dev_only' => ['name' => 'dev_only', 'description' => null, 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null]],
         );
 
         self::assertTrue($policy->isExposed('dev_only'));
@@ -103,8 +105,8 @@ final class ExposurePolicyTest extends TestCase
     public function allReturnsEveryEntryExposedOrNot(): void
     {
         $mcpTools = [
-            'exposed' => ['name' => 'exposed', 'description' => null, 'readOnly' => false, 'excludedReason' => null],
-            'excluded' => ['name' => 'excluded', 'description' => null, 'readOnly' => false, 'excludedReason' => 'reason'],
+            'exposed' => ['name' => 'exposed', 'description' => null, 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
+            'excluded' => ['name' => 'excluded', 'description' => null, 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => 'reason'],
         ];
         $policy = $this->policy(
             [
@@ -119,7 +121,7 @@ final class ExposurePolicyTest extends TestCase
 
     /**
      * @param array<string, array{path: string, methods: list<string>, controller: string, env: string|null, requirements: array<string, string>}> $routes
-     * @param array<string, array{name: string, description: string|null, readOnly: bool, excludedReason: string|null}>                            $mcpTools
+     * @param array<string, ToolEntry>                                                                                                             $mcpTools
      */
     private function policy(array $routes, array $mcpTools): ExposurePolicy
     {

@@ -20,8 +20,8 @@ use KonradMichalik\Typo3Routing\Http\{RouteUrlGenerator, SiteBasePathResolver};
 use KonradMichalik\Typo3Routing\OpenApi\JsonSchemaMapper;
 use KonradMichalik\Typo3Routing\Routing\{ControllerArgumentResolver, ControllerInvoker, RouteInvoker, RouteRegistry, SiteLanguageScope};
 use KonradMichalik\Typo3RoutingMcp\Http\{McpAuthGuard, McpEndpointMiddleware};
-use KonradMichalik\Typo3RoutingMcp\Mcp\{ExposurePolicy, InputSchemaFactory, ToolCatalog, ToolInvoker};
-use KonradMichalik\Typo3RoutingMcp\Tests\Unit\Fixtures\ToolInvokerProbeController;
+use KonradMichalik\Typo3RoutingMcp\Mcp\{ExposurePolicy, InputSchemaFactory, OutputSchemaFactory, ToolCatalog, ToolInvoker};
+use KonradMichalik\Typo3RoutingMcp\Tests\Unit\Fixtures\{CountDto, ToolInvokerProbeController};
 use PHPUnit\Framework\Attributes\{CoversClass, Test};
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
@@ -119,6 +119,50 @@ final class McpEndpointMiddlewareTest extends TestCase
         // collapse both shapes to an identical PHP [] and hide a regression, so this
         // has to assert on the raw, un-decoded response string instead.
         self::assertStringContainsString('"properties":{}', $body);
+    }
+
+    #[Test]
+    #[WithEnvVar(self::ENV_NAME, self::TOKEN)]
+    public function listsToolAnnotationsWithMethodDerivedHints(): void
+    {
+        $tools = $this->listTools();
+
+        self::assertSame(['readOnlyHint' => true], $tools['success']['annotations']);
+        self::assertSame(['readOnlyHint' => false, 'destructiveHint' => true, 'idempotentHint' => true], $tools['remove']['annotations']);
+    }
+
+    #[Test]
+    #[WithEnvVar(self::ENV_NAME, self::TOKEN)]
+    public function listsAnOutputSchemaOnlyForAToolWhoseRouteDeclaresReturns(): void
+    {
+        $tools = $this->listTools();
+
+        self::assertSame(
+            ['type' => 'object', 'properties' => ['count' => ['type' => 'integer']], 'required' => ['count']],
+            $tools['success']['outputSchema'],
+        );
+        self::assertArrayNotHasKey('outputSchema', $tools['echo']);
+    }
+
+    #[Test]
+    #[WithEnvVar(self::ENV_NAME, self::TOKEN)]
+    public function callsAToolAndReturnsStructuredContentNextToTheTextContent(): void
+    {
+        $sessionId = $this->sessionIdFrom($this->initialize($this->middleware()));
+
+        $response = $this->middleware()->process(
+            $this->mcpRequest([
+                'jsonrpc' => '2.0',
+                'id' => 3,
+                'method' => 'tools/call',
+                'params' => ['name' => 'success', 'arguments' => []],
+            ], $sessionId),
+            $this->handler(new Response()),
+        );
+
+        $envelope = json_decode((string) $response->getBody(), true, 512, \JSON_THROW_ON_ERROR);
+        self::assertSame(['count' => 3], $envelope['result']['structuredContent']);
+        self::assertJsonStringEqualsJsonString('{"count":3}', $envelope['result']['content'][0]['text']);
     }
 
     #[Test]
@@ -228,6 +272,28 @@ final class McpEndpointMiddlewareTest extends TestCase
         );
     }
 
+    /**
+     * @return array<string, array<string, mixed>> tools/list entries keyed by tool name
+     */
+    private function listTools(): array
+    {
+        $sessionId = $this->sessionIdFrom($this->initialize($this->middleware()));
+        $response = $this->middleware()->process(
+            $this->mcpRequest(['jsonrpc' => '2.0', 'id' => 2, 'method' => 'tools/list'], $sessionId),
+            $this->handler(new Response()),
+        );
+
+        /** @var array{result: array{tools: list<array{name: string}&array<string, mixed>>}} $envelope */
+        $envelope = json_decode((string) $response->getBody(), true, 512, \JSON_THROW_ON_ERROR);
+
+        $tools = [];
+        foreach ($envelope['result']['tools'] as $tool) {
+            $tools[$tool['name']] = $tool;
+        }
+
+        return $tools;
+    }
+
     private function sessionIdFrom(ResponseInterface $response): string
     {
         return $response->getHeaderLine('Mcp-Session-Id');
@@ -284,10 +350,12 @@ final class McpEndpointMiddlewareTest extends TestCase
 
         $registry = $this->registry();
         $exposurePolicy = new ExposurePolicy($registry, [
-            'success' => ['name' => 'success', 'description' => 'Returns a count.', 'readOnly' => true, 'excludedReason' => null],
-            'echo' => ['name' => 'echo', 'description' => 'Echoes the given id.', 'readOnly' => true, 'excludedReason' => null],
+            'success' => ['name' => 'success', 'description' => 'Returns a count.', 'readOnly' => true, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
+            'echo' => ['name' => 'echo', 'description' => 'Echoes the given id.', 'readOnly' => true, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
+            'remove' => ['name' => 'remove', 'description' => 'Deletes something.', 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
         ]);
-        $catalog = new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory(new JsonSchemaMapper()));
+        $schemas = new JsonSchemaMapper();
+        $catalog = new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory($schemas), new OutputSchemaFactory($schemas));
         $invoker = new ToolInvoker(new RouteInvoker(
             $registry,
             new ControllerInvoker($registry, new ControllerArgumentResolver($this->createMock(PersistenceManagerInterface::class))),
@@ -317,18 +385,24 @@ final class McpEndpointMiddlewareTest extends TestCase
         $routes = [
             'success' => ['path' => '/api/success', 'methods' => ['GET'], 'controller' => 'probe::success', 'env' => null, 'requirements' => []],
             'echo' => ['path' => '/api/echo/{id}', 'methods' => ['GET'], 'controller' => 'probe::echoId', 'env' => null, 'requirements' => ['id' => '\d+']],
+            'remove' => ['path' => '/api/remove', 'methods' => ['DELETE'], 'controller' => 'probe::emptyBody', 'env' => null, 'requirements' => []],
         ];
 
         /** @var array<string, list<array{name: string, type: string|null, source: string, nullable: bool, hasDefault: bool, default: mixed}>> $arguments */
         $arguments = [
             'success' => [],
             'echo' => [['name' => 'id', 'type' => 'int', 'source' => 'path', 'nullable' => false, 'hasDefault' => false, 'default' => null]],
+            'remove' => [],
         ];
 
         $locator = new ServiceLocator([
             'probe' => static fn (): ToolInvokerProbeController => new ToolInvokerProbeController(),
         ]);
 
-        return new RouteRegistry($routes, $locator, arguments: $arguments);
+        $returns = [
+            'success' => [['status' => 200, 'schema' => CountDto::class, 'collection' => false, 'description' => null]],
+        ];
+
+        return new RouteRegistry($routes, $locator, arguments: $arguments, returns: $returns);
     }
 }

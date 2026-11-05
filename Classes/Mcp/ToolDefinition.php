@@ -30,5 +30,9 @@ final readonly class ToolDefinition
         public string $routeName,
         public string $method,
         public bool $readOnly,
+        public ?bool $destructive,
+        public ?bool $idempotent,
+        /** @var array<string, mixed>|null */
+        public ?array $outputSchema,
     ) {}
 }

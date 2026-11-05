@@ -17,7 +17,7 @@ use KonradMichalik\Ttt\Attribute\WithEnvironment;
 use KonradMichalik\Typo3Routing\OpenApi\JsonSchemaMapper;
 use KonradMichalik\Typo3Routing\Routing\RouteRegistry;
 use KonradMichalik\Typo3RoutingMcp\Command\McpToolsCommand;
-use KonradMichalik\Typo3RoutingMcp\Mcp\{ExposurePolicy, InputSchemaFactory, ToolCatalog};
+use KonradMichalik\Typo3RoutingMcp\Mcp\{ExposurePolicy, InputSchemaFactory, OutputSchemaFactory, ToolCatalog};
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -71,7 +71,7 @@ final class McpToolsCommandTest extends TestCase
     {
         $registry = new RouteRegistry([], new ServiceLocator([]));
         $exposurePolicy = new ExposurePolicy($registry, []);
-        $toolCatalog = new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory(new JsonSchemaMapper()));
+        $toolCatalog = new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory(new JsonSchemaMapper()), new OutputSchemaFactory(new JsonSchemaMapper()));
         $tester = new CommandTester(new McpToolsCommand($exposurePolicy, $toolCatalog));
 
         $exitCode = $tester->execute([]);
@@ -95,14 +95,14 @@ final class McpToolsCommandTest extends TestCase
         ];
 
         $mcpTools = [
-            'course_show' => ['name' => 'course_show', 'description' => 'Fetch a course.', 'readOnly' => true, 'excludedReason' => null],
-            'secure_route' => ['name' => 'secure_route', 'description' => null, 'readOnly' => false, 'excludedReason' => 'Guarded by an authenticator requiring a user session, which an MCP client cannot provide (Acme\\FrontendUserAuthenticator).'],
-            'dev_only_route' => ['name' => 'dev_only_route', 'description' => null, 'readOnly' => false, 'excludedReason' => null],
+            'course_show' => ['name' => 'course_show', 'description' => 'Fetch a course.', 'readOnly' => true, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
+            'secure_route' => ['name' => 'secure_route', 'description' => null, 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => 'Guarded by an authenticator requiring a user session, which an MCP client cannot provide (Acme\\FrontendUserAuthenticator).'],
+            'dev_only_route' => ['name' => 'dev_only_route', 'description' => null, 'readOnly' => false, 'destructive' => null, 'idempotent' => null, 'excludedReason' => null],
         ];
 
         $registry = new RouteRegistry($routes, new ServiceLocator([]), arguments: $arguments);
         $exposurePolicy = new ExposurePolicy($registry, $mcpTools);
-        $toolCatalog = new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory(new JsonSchemaMapper()));
+        $toolCatalog = new ToolCatalog($registry, $exposurePolicy, new InputSchemaFactory(new JsonSchemaMapper()), new OutputSchemaFactory(new JsonSchemaMapper()));
 
         return new CommandTester(new McpToolsCommand($exposurePolicy, $toolCatalog));
     }

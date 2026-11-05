@@ -15,7 +15,7 @@ TYPO3 extension `typo3_routing_mcp` (`konradmichalik/typo3-routing-mcp`), a sate
 
 - `Classes/Attribute/McpTool`: opt-in marker on a controller method that already carries `#[Route]`. No attribute, no tool
 - `Classes/DependencyInjection/McpToolCompilerPass`: runs after the core `RouteCompilerPass`, collects `#[McpTool]` routes and applies the compile-time exclusions (session-scoped auth, request token)
-- `Classes/Mcp/`: `ExposurePolicy` (request-time environment check), `ToolCatalog`, `ToolDefinition`, `InputSchemaFactory` (flat JSON Schema per tool), `ToolInvoker` (maps the route response to an MCP `CallToolResult`)
+- `Classes/Mcp/`: `ExposurePolicy` (request-time environment check), `ToolCatalog`, `ToolDefinition`, `InputSchemaFactory` (flat JSON Schema per tool), `OutputSchemaFactory` (tool `outputSchema` from the route's `#[Returns]`, only for DTOs whose property types map precisely), `ToolInvoker` (maps the route response to an MCP `CallToolResult`, with `structuredContent` for a JSON object body)
 - `Classes/Http/`: `McpAuthGuard` (bearer-token gate) and `McpEndpointMiddleware` (PSR-15, registered in `Configuration/RequestMiddlewares.php`, builds a fresh `mcp/sdk` server per request)
 - `Classes/Command/McpToolsCommand`: `routing:mcp:tools`, lists annotated routes and their exposure status, supports `--json`
 - `Configuration/`: services, middleware, TYPO3 configuration

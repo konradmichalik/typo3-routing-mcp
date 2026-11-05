@@ -19,7 +19,10 @@ use Mcp\Schema\Content\TextContent;
 use Mcp\Schema\Result\CallToolResult;
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 use RuntimeException;
+use stdClass;
 
+use function array_is_list;
+use function get_object_vars;
 use function json_decode;
 use function json_encode;
 use function sprintf;
@@ -52,9 +55,28 @@ final readonly class ToolInvoker
 
         $content = [new TextContent(json_encode($decoded, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR))];
 
-        return $response->getStatusCode() >= 400
-            ? CallToolResult::error($content)
-            : CallToolResult::success($content);
+        if ($response->getStatusCode() >= 400) {
+            return CallToolResult::error($content);
+        }
+
+        return new CallToolResult($content, structuredContent: $this->structuredContent($decoded));
+    }
+
+    /**
+     * Only a JSON object qualifies, handed over as the associative array mcp/sdk expects, unless
+     * that array would encode as a list (`{}` or keys 0..n): then the object itself is kept.
+     *
+     * @return array<string, mixed>|stdClass|null
+     */
+    private function structuredContent(mixed $decoded): array|stdClass|null
+    {
+        if (!$decoded instanceof stdClass) {
+            return null;
+        }
+
+        $properties = get_object_vars($decoded);
+
+        return array_is_list($properties) ? $decoded : $properties;
     }
 
     private function decodeJsonBody(string $routeName, ResponseInterface $response): mixed
@@ -67,6 +89,13 @@ final readonly class ToolInvoker
         $contentType = $response->getHeaderLine('Content-Type');
         if (!str_starts_with($contentType, 'application/json') && !str_starts_with($contentType, 'application/problem+json')) {
             throw new RuntimeException(sprintf('Route "%s" returned a non-JSON response (Content-Type: %s); ToolInvoker requires a JSON body to represent as MCP tool content.', $routeName, '' === $contentType ? '(none)' : $contentType), 1800099552);
+        }
+
+        try {
+            // Objects stay stdClass so an empty or nested `{}` does not turn into `[]`.
+            return json_decode($body, false, 512, \JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            // A key starting with "\u0000" is no valid property name; an array still holds it.
         }
 
         try {

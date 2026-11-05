@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "89525602259ca78a706380a034ce5ecf",
+    "content-hash": "d9f69ccba611d4eca5f3f372098a12cd",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -6458,7 +6458,8 @@
                     "type": "membership"
                 }
             ],
-            "time": "2026-07-14T12:26:05+00:00"
+            "time": "2026-07-14T12:26:05+00:00",
+            "published-time": "2026-07-14T12:31:44+00:00"
         },
         {
             "name": "typo3/cms-frontend",

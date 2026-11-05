@@ -22,14 +22,14 @@
 		"symfony/console": "^7.0 || ^8.0",
 		"symfony/dependency-injection": "^7.1 || ^8.0",
 		"symfony/polyfill-php83": "^1.43.0",
-		"typo3/cms-core": "^13.4 || ^14.0"
+		"typo3/cms-core": "^13.4 || ^14.0",
+		"typo3/cms-extbase": "^13.4 || ^14.0"
 	},
 	"require-dev": {
 		"eliashaeussler/version-bumper": "^4.1.2",
 		"konradmichalik/ttt": "^0.6.0",
 		"phpunit/phpunit": "^11.0 || ^12.0 || ^13.0",
 		"typo3/cms-base-distribution": "^13.4 || ^14.0",
-		"typo3/cms-extbase": "^13.4 || ^14.0",
 		"typo3/cms-lowlevel": "^13.4 || ^14.0",
 		"typo3/testing-framework": "^8.2 || ^9.0 || ^10.0"
 	},

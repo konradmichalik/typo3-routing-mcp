@@ -62,6 +62,21 @@ use KonradMichalik\Typo3RoutingMcp\Attribute\McpTool;
 public function show(int $id): ResponseInterface { /* … */ }
 ```
 
+`#[McpTool]` takes these optional arguments:
+
+| Argument | Default | Description |
+| --- | --- | --- |
+| `name` | route name | Tool name shown to the client. |
+| `description` | route `description` | Tool description shown to the client. |
+| `readOnly` | `false` | Sets `readOnlyHint`. A read-only tool carries no `destructiveHint` or `idempotentHint`. |
+| `destructive` | derived | Overrides `destructiveHint`, which is `true` for `DELETE` routes and `false` otherwise. |
+| `idempotent` | derived | Overrides `idempotentHint`, which is `true` for `GET`, `PUT` and `DELETE` routes and `false` otherwise. |
+
+A route with a [`#[Returns]`](https://github.com/konradmichalik/typo3-routing/blob/main/docs/operating/openapi.md#declaring-a-response-schema) DTO gets an `outputSchema` built from it. Every successful call whose body is a JSON object returns it as `structuredContent` next to the text content. The schema is only set when every declared 2xx response is the same single DTO. Collections get none, because MCP revisions before `2026-07-28` only accept an object schema. Nullable DTO properties also accept `null`.
+
+> [!IMPORTANT]
+> The `outputSchema` is a contract: the MCP SDK validates every successful `structuredContent` against it and turns a mismatching response into a tool error. So the schema is only emitted when every public property of the DTO, including nested DTOs, has a precisely mappable type: `int`, `float`, `bool`, `string`, `mixed`, a backed enum, or another DTO that qualifies itself. The tool gets no `outputSchema` (but still returns `structuredContent`) when a property is untyped, a union or intersection type, `array`, `iterable` or `object`, an Extbase domain object, or a class without public properties such as `DateTimeImmutable`, or when the DTO or a nested one implements `JsonSerializable`.
+
 Then audit what's exposed, via the TYPO3 console:
 
 ```bash
