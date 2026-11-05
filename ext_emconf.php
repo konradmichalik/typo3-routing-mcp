@@ -22,7 +22,7 @@ $EM_CONF[$_EXTKEY] = [
             'php' => '8.2.0-8.5.99',
             'typo3' => '13.4.0-14.99.99',
             'extbase' => '13.4.0-14.99.99',
-            'typo3_routing' => '',
+            'typo3_routing' => '1.5.0-1.99.99',
         ],
         'conflicts' => [],
         'suggests' => [],
